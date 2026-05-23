@@ -1,7 +1,6 @@
 <div align="center">
 
-<!-- Animated Typing Header -->
-[![Typing SVG](https://readme-typing-svg.demolab.com?font=Fira+Code&weight=600&size=28&duration=3000&pause=1000&color=58A6FF&center=true&vCenter=true&multiline=true&repeat=true&width=700&height=100&lines=%F0%9F%91%8B+Hola%2C+soy+Marco+Ortega;Full+Stack+Developer+%7C+Mobile+%26+Web+%7C+AI+Enthusiast)](https://git.io/typing-svg)
+[![Typing SVG](https://readme-typing-svg.demolab.com?font=Fira+Code&weight=600&size=28&duration=3000&pause=1000&color=58A6FF&center=true&vCenter=true&multiline=true&repeat=true&width=700&height=100&lines=Marco+Ortega;Full+Stack+Developer+%7C+Web+%26+Mobile)](https://git.io/typing-svg)
 
 <img src="https://komarev.com/ghpvc/?username=MarcoSebastianOrtegaMolina&label=Profile%20Views&color=58A6FF&style=for-the-badge" alt="Profile views" />
 
@@ -9,24 +8,24 @@
 
 ---
 
-## 🧑‍💻 About Me
+## About Me
 
 ```yaml
 name: Marco Sebastián Ortega Molina
-location: Hermosillo, Sonora, México 🇲🇽
+location: Hermosillo, Sonora, México
 education: Ingeniería en Sistemas Computacionales @ UNISON (5° Semestre)
 focus: Full Stack Web & Mobile Development
 interests: AI Integration, Automation, 3D Web Experiences
 ```
 
-- 🔭 Currently building **MiDosis** — a mobile health app with AI assistant
-- 🌱 Learning **AI/ML integration** and **3D web animations**
-- ⚡ Passionate about creating **real-world solutions** with modern tech
-- 🎯 2026 Goal: Build a strong portfolio & contribute to open source
+- Currently building **MiDosis** — a mobile health app with AI assistant
+- Learning **AI/ML integration** and **3D web animations**
+- Passionate about creating **real-world solutions** with modern tech
+- 2026 Goal: Build a strong portfolio & contribute to open source
 
 ---
 
-## 🛠️ Tech Stack
+## Tech Stack
 
 <div align="center">
 
@@ -57,14 +56,13 @@ interests: AI Integration, Automation, 3D Web Experiences
 ![n8n](https://img.shields.io/badge/n8n-EA4B71?style=for-the-badge&logo=n8n&logoColor=white)
 ![Git](https://img.shields.io/badge/Git-F05032?style=for-the-badge&logo=git&logoColor=white)
 ![GitHub](https://img.shields.io/badge/GitHub-181717?style=for-the-badge&logo=github&logoColor=white)
-![Telegram Bot](https://img.shields.io/badge/Telegram_Bot-26A5E4?style=for-the-badge&logo=telegram&logoColor=white)
 ![Figma](https://img.shields.io/badge/Figma-F24E1E?style=for-the-badge&logo=figma&logoColor=white)
 
 </div>
 
 ---
 
-## 📊 GitHub Stats
+## GitHub Stats
 
 <div align="center">
 
@@ -77,27 +75,21 @@ interests: AI Integration, Automation, 3D Web Experiences
 
 ---
 
-## 🚀 Featured Projects
+## Featured Projects
 
 <div align="center">
 
-| 💊 **MiDosis** | 🍬 **Cristy Snacks** |
+| **MiDosis** | **Cristy Snacks** |
 |:---:|:---:|
 | Mobile health app with AI assistant for medication tracking | Business management system with inventory, sales & finance |
 | `React Native` `Expo` `Supabase` `OpenRouter AI` | `Next.js` `Supabase` `TypeScript` |
 | [![Repo](https://img.shields.io/badge/View_Repo-181717?style=for-the-badge&logo=github)](https://github.com/MarcoSebastianOrtegaMolina/MiDosis) | [![Repo](https://img.shields.io/badge/View_Repo-181717?style=for-the-badge&logo=github)](https://github.com/MarcoSebastianOrtegaMolina/cristy-snacks) |
 
-| 🎮 **Pokemon Red Fire App** | 🌐 **Congreso de Física** |
-|:---:|:---:|
-| Interactive Pokédex web app with dynamic data | Educational website for UNISON Physics Congress |
-| `Vite` `JavaScript` `Tailwind` `PokéAPI` | `HTML` `CSS` `JavaScript` |
-| [![Repo](https://img.shields.io/badge/View_Repo-181717?style=for-the-badge&logo=github)](https://github.com/MarcoSebastianOrtegaMolina/pokemon-red-fire-app) | [![Repo](https://img.shields.io/badge/View_Repo-181717?style=for-the-badge&logo=github)](https://github.com/MarcoSebastianOrtegaMolina/congreso-fisica) |
-
 </div>
 
 ---
 
-## 🐍 Contribution Graph
+## Contribution Graph
 
 <div align="center">
 
@@ -107,7 +99,7 @@ interests: AI Integration, Automation, 3D Web Experiences
 
 ---
 
-## 📫 Connect With Me
+## Connect With Me
 
 <div align="center">
 
@@ -120,11 +112,7 @@ interests: AI Integration, Automation, 3D Web Experiences
 
 <div align="center">
 
-### 💡 Random Dev Quote
+### Random Dev Quote
 ![](https://quotes-github-readme.vercel.app/api?type=horizontal&theme=tokyonight)
-
----
-
-⭐ **From [MarcoSebastianOrtegaMolina](https://github.com/MarcoSebastianOrtegaMolina)** — *Building the future, one commit at a time* 🚀
 
 </div>
