@@ -85,6 +85,12 @@ interests: AI Integration, Automation, 3D Web Experiences
 | `React Native` `Expo` `Supabase` `OpenRouter AI` | `Next.js` `Supabase` `TypeScript` |
 | [![Repo](https://img.shields.io/badge/View_Repo-181717?style=for-the-badge&logo=github)](https://github.com/MarcoSebastianOrtegaMolina/MiDosis) | [![Repo](https://img.shields.io/badge/View_Repo-181717?style=for-the-badge&logo=github)](https://github.com/MarcoSebastianOrtegaMolina/cristy-snacks) |
 
+| **NurseGo** |
+|:---:|
+| Mobile app for nursing professionals — shifts, patients, geolocation |
+| `React Native` `Expo` `Supabase` `Maps` `TypeScript` |
+| [![Repo](https://img.shields.io/badge/View_Repo-181717?style=for-the-badge&logo=github)](https://github.com/MarcoSebastianOrtegaMolina/NurseGo) |
+
 </div>
 
 ---
