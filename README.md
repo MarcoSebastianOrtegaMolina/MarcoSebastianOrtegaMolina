@@ -109,7 +109,7 @@ interests: AI Integration, Automation, 3D Web Experiences
 <div align="center">
 
 [![GitHub](https://img.shields.io/badge/GitHub-MarcoSebastianOrtegaMolina-181717?style=for-the-badge&logo=github)](https://github.com/MarcoSebastianOrtegaMolina)
-[![Email](https://img.shields.io/badge/Email-marcosebastian290506@gmail.com-D14836?style=for-the-badge&logo=gmail&logoColor=white)](mailto:contactomarcosebastian@gmail.com)
+[![Email](https://img.shields.io/badge/Email-contactomarcosebastian@gmail.com-D14836?style=for-the-badge&logo=gmail&logoColor=white)](mailto:contactomarcosebastian@gmail.com)
 
 </div>
 
