@@ -18,7 +18,6 @@ focus: Full Stack Web & Mobile Development
 interests: AI Integration, Automation, 3D Web Experiences
 ```
 
-- Currently building **MiDosis** — a mobile health app with AI assistant
 - Learning **AI/ML integration** and **3D web animations**
 - Passionate about creating **real-world solutions** with modern tech
 - 2026 Goal: Build a strong portfolio & contribute to open source
@@ -110,7 +109,7 @@ interests: AI Integration, Automation, 3D Web Experiences
 <div align="center">
 
 [![GitHub](https://img.shields.io/badge/GitHub-MarcoSebastianOrtegaMolina-181717?style=for-the-badge&logo=github)](https://github.com/MarcoSebastianOrtegaMolina)
-[![Email](https://img.shields.io/badge/Email-marcosebastian290506@gmail.com-D14836?style=for-the-badge&logo=gmail&logoColor=white)](mailto:marcosebastian290506@gmail.com)
+[![Email](https://img.shields.io/badge/Email-marcosebastian290506@gmail.com-D14836?style=for-the-badge&logo=gmail&logoColor=white)](mailto:contactomarcosebastian@gmail.com)
 
 </div>
 
