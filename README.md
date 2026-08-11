@@ -37,6 +37,12 @@ interests: AI Integration, Automation, 3D Web Experiences
 ![HTML5](https://img.shields.io/badge/HTML5-E34F26?style=for-the-badge&logo=html5&logoColor=white)
 ![CSS3](https://img.shields.io/badge/CSS3-1572B6?style=for-the-badge&logo=css3&logoColor=white)
 
+### Languages I have used and learned throughout my career so far
+![HTML5](https://img.shields.io/badge/HTML5-E34F26?style=for-the-badge&logo=html5&logoColor=white)
+![Python](https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white)
+![Java](https://img.shields.io/badge/Java-ED8B00?style=for-the-badge&logo=openjdk&logoColor=white)
+![SQL](https://img.shields.io/badge/SQL-4479A1?style=for-the-badge&logo=postgresql&logoColor=white)
+
 ### Frameworks & Libraries
 ![Next.js](https://img.shields.io/badge/Next.js-000000?style=for-the-badge&logo=next.js&logoColor=white)
 ![React](https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)
@@ -57,6 +63,17 @@ interests: AI Integration, Automation, 3D Web Experiences
 ![GitHub](https://img.shields.io/badge/GitHub-181717?style=for-the-badge&logo=github&logoColor=white)
 ![Figma](https://img.shields.io/badge/Figma-F24E1E?style=for-the-badge&logo=figma&logoColor=white)
 
+###Features of AI agents I've worked with
+
+![Agent Skills]([https://img.shields.io/badge/n8n-EA4B71?style=for-the-badge&logo=n8n&logoColor=white](https://img.shields.io/badge/Agent%20Skills-000000?style=for-the-badge&logo=Agent+Skills&logoColor=FFFFFF))
+![Autonomous Planning](https://img.shields.io/badge/Autonomous_Planning-8A2BE2?style=for-the-badge&logo=google-brain&logoColor=white)  
+![Complex Reasoning](https://img.shields.io/badge/Complex_Reasoning-4B0082?style=for-the-badge&logo=deepmind&logoColor=white)   
+![Self-Correction](https://img.shields.io/badge/Self--Correction-FF4500?style=for-the-badge&logo=debug&logoColor=white)   
+
+###CLI coding agents
+![Opencode](https://img.shields.io/badge/OpenCode-000000?style=for-the-badge&logo=OpenCode&logoColor=FFFFFF)
+![Claude Code](https://img.shields.io/badge/Claude_Code-D97757?style=for-the-badge&logo=anthropic&logoColor=white)   
+
 </div>
 
 ---
@@ -69,6 +86,8 @@ interests: AI Integration, Automation, 3D Web Experiences
 <img width="49%" src="https://github-readme-streak-stats.herokuapp.com/?user=MarcoSebastianOrtegaMolina&theme=tokyonight&hide_border=true&background=0D1117&ring=58A6FF&fire=58A6FF&currStreakLabel=58A6FF" />
 
 <img width="40%" src="https://github-readme-stats.vercel.app/api/top-langs/?username=MarcoSebastianOrtegaMolina&layout=compact&theme=tokyonight&hide_border=true&bg_color=0D1117&title_color=58A6FF&text_color=C9D1D9" />
+
+
 
 </div>
 
