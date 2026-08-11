@@ -63,14 +63,14 @@ interests: AI Integration, Automation, 3D Web Experiences
 ![GitHub](https://img.shields.io/badge/GitHub-181717?style=for-the-badge&logo=github&logoColor=white)
 ![Figma](https://img.shields.io/badge/Figma-F24E1E?style=for-the-badge&logo=figma&logoColor=white)
 
-###Features of AI agents I've worked with
+### Features of AI agents I've worked with
 
 ![Agent Skills](https://img.shields.io/badge/Agent%20Skills-000000?style=for-the-badge&logo=Agent+Skills&logoColor=FFFFFF)
 ![Autonomous Planning](https://img.shields.io/badge/Autonomous_Planning-8A2BE2?style=for-the-badge&logo=google-brain&logoColor=white)  
 ![Complex Reasoning](https://img.shields.io/badge/Complex_Reasoning-4B0082?style=for-the-badge&logo=deepmind&logoColor=white)   
 ![Self-Correction](https://img.shields.io/badge/Self--Correction-FF4500?style=for-the-badge&logo=debug&logoColor=white)   
 
-###CLI coding agents
+### CLI coding agents
 
 ![Opencode](https://img.shields.io/badge/OpenCode-000000?style=for-the-badge&logo=OpenCode&logoColor=FFFFFF)
 ![Claude Code](https://img.shields.io/badge/Claude_Code-D97757?style=for-the-badge&logo=anthropic&logoColor=white)   
