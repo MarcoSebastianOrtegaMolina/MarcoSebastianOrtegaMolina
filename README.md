@@ -1,6 +1,6 @@
 <div align="center">
 
-[![Typing SVG](https://readme-typing-svg.demolab.com?font=Fira+Code&weight=800&size=26&duration=3000&pause=1000&color=58A6FF&center=true&vCenter=true&multiline=true&repeat=true&width=800&height=160&lines=%F0%9F%91%8B+Hola%2C+soy+Marco+Ortega;Full+Stack+Developer+%7C+Mobile+%26+Web;AI+Enthusiast)](https://git.io/typing-svg)
+[![Typing SVG](https://readme-typing-svg.demolab.com?font=Fira+Code&weight=800&size=26&duration=2500&pause=700&color=58A6FF&center=true&vCenter=true&multiline=true&repeat=true&width=800&height=160&lines=%F0%9F%91%8B+Hola%2C+soy+Marco+Ortega;Full+Stack+Developer+%7C+Mobile+%26+Web;AI+Enthusiast)](https://git.io/typing-svg)
 
 <img src="https://komarev.com/ghpvc/?username=MarcoSebastianOrtegaMolina&label=Profile%20Views&color=58A6FF&style=for-the-badge" alt="Profile views" />
 
