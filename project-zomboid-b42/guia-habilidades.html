@@ -1,0 +1,663 @@
+<title>Chuleta Zomboid B42</title>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Barlow:ital,wght@0,400;0,500;0,600;0,700;1,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+:root{
+  --ground:#0B111C; --panel:#141B29; --panel-2:#1B2333; --panel-3:#222B3D;
+  --rule:#2A3348; --rule-2:#38445E;
+  --ink:#E9ECF3; --ink-2:#9AA5BC; --ink-3:#6C7793;
+  --amber:#F5B32D; --amber-2:#C98A12; --amber-glow:rgba(245,179,45,.14);
+  --track:#070C15;
+  --good:#7CB25F; --bad:#D0544A; --info:#6BA3DC;
+  --display:"Oswald","Arial Narrow",Impact,sans-serif;
+  --body:"Barlow","Segoe UI",Helvetica,Arial,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;
+  --r:3px;
+}
+*{box-sizing:border-box}
+body{
+  background:var(--ground);
+  background-image:
+    radial-gradient(1100px 620px at 12% -12%, rgba(43,58,88,.45) 0%, transparent 60%),
+    radial-gradient(900px 500px at 90% 0%, rgba(245,179,45,.05) 0%, transparent 55%);
+  color:var(--ink); font-family:var(--body); font-size:16px; line-height:1.6;
+  margin:0; padding:0; -webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:1180px;margin:0 auto;padding:28px 20px 90px}
+h1,h2,h3,h4{font-family:var(--display);font-weight:600;text-wrap:balance;margin:0;letter-spacing:.01em}
+p{margin:0}
+a{color:var(--amber);text-decoration:none;border-bottom:1px solid var(--amber-2)}
+a:hover{color:#FFD066}
+:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
+
+/* ---------- masthead ---------- */
+.masthead{border:1px solid var(--rule);background:linear-gradient(180deg,var(--panel-2),var(--panel));padding:26px 26px 24px;position:relative;overflow:hidden}
+.masthead::after{content:"";position:absolute;inset:0 0 auto;height:2px;background:linear-gradient(90deg,var(--amber),transparent 70%)}
+.eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--amber);margin-bottom:12px;display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.eyebrow .dot{width:5px;height:5px;background:var(--amber);border-radius:50%;display:inline-block}
+h1{font-size:clamp(30px,5.2vw,50px);line-height:1.03;font-weight:700;letter-spacing:-.005em}
+h1 em{font-style:normal;color:var(--amber)}
+.lede{color:var(--ink-2);font-size:17px;max-width:64ch;margin-top:14px}
+.verified{margin-top:18px;display:flex;flex-wrap:wrap;gap:8px}
+.chip{font-family:var(--mono);font-size:11px;letter-spacing:.05em;padding:5px 10px;border:1px solid var(--rule-2);background:var(--track);color:var(--ink-2);border-radius:var(--r)}
+.chip b{color:var(--ink);font-weight:600}
+.chip.live{border-color:var(--amber-2);color:var(--amber)}
+
+/* ---------- section ---------- */
+section{margin-top:52px}
+.shead{display:flex;align-items:baseline;gap:14px;border-bottom:1px solid var(--rule);padding-bottom:10px;margin-bottom:22px}
+.shead h2{font-size:24px;text-transform:uppercase;letter-spacing:.04em}
+.shead .num{font-family:var(--mono);font-size:12px;color:var(--amber);letter-spacing:.1em}
+.shead .aside{margin-left:auto;font-size:13px;color:var(--ink-3);font-family:var(--mono)}
+
+/* ---------- verdict blocks ---------- */
+.verdicts{display:grid;gap:14px;grid-template-columns:1fr}
+@media(min-width:860px){.verdicts{grid-template-columns:1fr 1fr}}
+.verdict{border:1px solid var(--rule);background:var(--panel);padding:20px 22px;position:relative;padding-left:26px}
+.verdict::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px}
+.verdict.no::before{background:var(--bad)}
+.verdict.si::before{background:var(--good)}
+.verdict .tag{font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;font-weight:600}
+.verdict.no .tag{color:var(--bad)} .verdict.si .tag{color:var(--good)}
+.verdict h3{font-size:21px;margin:8px 0 10px}
+.verdict p{color:var(--ink-2);font-size:15px}
+.verdict p + p{margin-top:10px}
+.fix{margin-top:14px;background:var(--track);border:1px solid var(--rule);padding:12px 14px;font-size:14px;color:var(--ink-2)}
+.fix .path{font-family:var(--mono);font-size:13px;color:var(--amber);display:block;margin-top:4px;word-break:break-word}
+
+/* ---------- rules ---------- */
+.rules{display:grid;gap:1px;background:var(--rule);border:1px solid var(--rule);grid-template-columns:1fr}
+@media(min-width:760px){.rules{grid-template-columns:repeat(3,1fr)}}
+.rule{background:var(--panel);padding:20px}
+.rule .n{font-family:var(--display);font-size:34px;font-weight:700;color:var(--amber);line-height:1;opacity:.85}
+.rule h4{font-size:17px;margin:8px 0 8px}
+.rule p{font-size:14.5px;color:var(--ink-2)}
+
+/* ---------- character panel (in-game replica) ---------- */
+.charwrap{display:grid;gap:22px;grid-template-columns:1fr}
+@media(min-width:940px){.charwrap{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}}
+.gamepanel{border:1px solid var(--rule-2);background:var(--panel);box-shadow:0 0 0 1px #05080E, 0 18px 40px -22px #000}
+.gp-bar{display:flex;align-items:center;gap:10px;padding:11px 14px;border-bottom:1px solid var(--rule-2);background:var(--panel-2)}
+.gp-bar h3{font-size:16px;letter-spacing:.06em;text-transform:uppercase}
+.gp-grip{font-family:var(--mono);color:var(--ink-3);font-size:13px;letter-spacing:-2px}
+.gp-btns{margin-left:auto;display:flex;gap:5px}
+.gp-btns i{width:19px;height:19px;border:1px solid var(--rule-2);display:grid;place-items:center;font-style:normal;font-size:10px;color:var(--ink-2);font-family:var(--mono)}
+.gp-body{padding:6px 0 10px;max-height:none}
+.gp-cat{font-family:var(--display);font-weight:600;font-size:14.5px;letter-spacing:.03em;padding:12px 14px 5px;color:var(--ink);display:flex;align-items:center;gap:8px}
+.gp-cat span{width:13px;height:13px;border:1px solid var(--rule-2);display:grid;place-items:center;font-size:8px;color:var(--ink-2);font-family:var(--mono)}
+.gp-row{display:grid;grid-template-columns:minmax(96px,1.35fr) 26px minmax(60px,2fr) minmax(74px,auto);gap:8px;align-items:center;padding:3.5px 14px 3.5px 26px;font-size:13.5px}
+.gp-row:hover{background:var(--panel-2)}
+.gp-row.hot .nm{color:var(--amber)}
+.gp-row .nm{color:var(--ink-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.gp-row.lvl-up .nm{color:var(--ink);font-weight:600}
+.gp-row .lv{font-family:var(--mono);font-size:13px;color:var(--ink);text-align:right}
+.gp-row .lv::after{content:" +";color:var(--ink-3)}
+.gp-track{height:12px;background:var(--track);border:1px solid var(--rule-2);position:relative;overflow:hidden}
+.gp-fill{position:absolute;inset:1px auto 1px 1px;background:linear-gradient(180deg,#FFCC55,var(--amber) 55%,var(--amber-2));width:0;transition:width .9s cubic-bezier(.2,.7,.3,1)}
+.gp-xp{font-family:var(--mono);font-size:11.5px;color:var(--ink-2);text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.gp-foot{border-top:1px solid var(--rule-2);padding:9px 14px;font-family:var(--mono);font-size:11px;color:var(--ink-3);display:flex;gap:8px;flex-wrap:wrap}
+
+/* ---------- plan ---------- */
+.plan{border:1px solid var(--rule);background:var(--panel);padding:22px}
+.plan > h3{font-size:20px;margin-bottom:4px}
+.plan > .sub{color:var(--ink-3);font-size:14px;margin-bottom:18px}
+.step{display:grid;grid-template-columns:34px 1fr;gap:14px;padding:16px 0;border-top:1px solid var(--rule)}
+.step:first-of-type{border-top:none;padding-top:4px}
+.step .badge{width:34px;height:34px;border:1px solid var(--amber-2);color:var(--amber);display:grid;place-items:center;font-family:var(--display);font-weight:600;font-size:17px;background:var(--amber-glow)}
+.step h4{font-size:16.5px;margin-bottom:5px}
+.step p{font-size:14.5px;color:var(--ink-2)}
+.step .why{margin-top:8px;font-size:13px;color:var(--ink-3);border-left:2px solid var(--rule-2);padding-left:10px}
+kbd{font-family:var(--mono);font-size:12.5px;background:var(--track);border:1px solid var(--rule-2);border-bottom-width:2px;padding:1px 6px;color:var(--ink);border-radius:2px;white-space:nowrap}
+
+/* ---------- filters ---------- */
+.toolbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:20px}
+.fchip{font-family:var(--mono);font-size:12px;letter-spacing:.04em;text-transform:uppercase;padding:7px 12px;border:1px solid var(--rule-2);background:var(--panel);color:var(--ink-2);cursor:pointer;border-radius:var(--r);transition:.15s}
+.fchip:hover{border-color:var(--amber-2);color:var(--ink)}
+.fchip[aria-pressed="true"]{background:var(--amber);border-color:var(--amber);color:#12161F;font-weight:600}
+.search{margin-left:auto;position:relative}
+.search input{font-family:var(--body);font-size:14px;background:var(--track);border:1px solid var(--rule-2);color:var(--ink);padding:8px 12px 8px 32px;width:200px;border-radius:var(--r)}
+.search input::placeholder{color:var(--ink-3)}
+.search svg{position:absolute;left:9px;top:50%;transform:translateY(-50%);width:15px;height:15px;color:var(--ink-3)}
+
+/* ---------- skill cards ---------- */
+.cards{display:grid;gap:14px;grid-template-columns:1fr}
+@media(min-width:700px){.cards{grid-template-columns:repeat(2,1fr)}}
+@media(min-width:1060px){.cards{grid-template-columns:repeat(3,1fr)}}
+.card{border:1px solid var(--rule);background:var(--panel);display:flex;flex-direction:column;transition:border-color .15s}
+.card:hover{border-color:var(--rule-2)}
+.card.done{opacity:.55}
+.card-h{display:flex;gap:11px;align-items:flex-start;padding:15px 15px 12px;border-bottom:1px solid var(--rule);background:var(--panel-2)}
+.ico{width:34px;height:34px;flex:0 0 34px;border:1px solid var(--rule-2);background:var(--track);display:grid;place-items:center;color:var(--amber)}
+.ico svg{width:20px;height:20px}
+.ico img{width:28px;height:28px;image-rendering:pixelated}
+.card-h .t{min-width:0;flex:1}
+.card-h h3{font-size:16.5px;line-height:1.2}
+.card-h .en{font-family:var(--mono);font-size:11px;color:var(--ink-3);letter-spacing:.03em;margin-top:3px}
+.lvpill{font-family:var(--mono);font-size:11px;padding:3px 7px;border:1px solid var(--rule-2);color:var(--ink-3);white-space:nowrap;align-self:center}
+.lvpill.has{border-color:var(--amber-2);color:var(--amber);background:var(--amber-glow)}
+.card-b{padding:14px 15px 6px;flex:1;display:flex;flex-direction:column;gap:11px}
+.field{display:grid;grid-template-columns:auto 1fr;gap:9px;align-items:start}
+.field .k{font-family:var(--mono);font-size:10px;letter-spacing:.11em;text-transform:uppercase;color:var(--ink-3);padding-top:4px;width:78px;white-space:nowrap}
+.field .v{font-size:14.3px;color:var(--ink)}
+.field.mats .v{color:var(--ink-2);font-size:13.6px}
+.field.xp .v{font-family:var(--mono);font-size:13px;color:var(--amber);font-variant-numeric:tabular-nums}
+.tip{font-size:13.4px;color:var(--ink-2);background:var(--track);border-left:2px solid var(--amber-2);padding:9px 11px;margin:2px 0 0}
+.card-f{padding:10px 15px 13px;border-top:1px solid var(--rule);margin-top:auto}
+.check{display:flex;align-items:center;gap:9px;font-family:var(--mono);font-size:11.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3);cursor:pointer;user-select:none}
+.check input{appearance:none;width:15px;height:15px;border:1px solid var(--rule-2);background:var(--track);cursor:pointer;display:grid;place-items:center;flex:0 0 15px}
+.check input:checked{background:var(--good);border-color:var(--good)}
+.check input:checked::after{content:"";width:4px;height:8px;border:solid #0B111C;border-width:0 2px 2px 0;transform:rotate(43deg) translate(-1px,-1px)}
+.check input:checked + span{color:var(--good)}
+.empty{grid-column:1/-1;text-align:center;padding:44px 20px;color:var(--ink-3);border:1px dashed var(--rule-2);font-family:var(--mono);font-size:13px}
+
+/* ---------- tables ---------- */
+.tablewrap{overflow-x:auto;border:1px solid var(--rule);background:var(--panel)}
+table{border-collapse:collapse;width:100%;min-width:540px}
+th,td{text-align:right;padding:9px 14px;font-family:var(--mono);font-size:13px;font-variant-numeric:tabular-nums;border-bottom:1px solid var(--rule)}
+th{color:var(--ink-3);font-size:10.5px;letter-spacing:.11em;text-transform:uppercase;background:var(--panel-2);font-weight:500}
+td:first-child,th:first-child{text-align:left;color:var(--ink)}
+tbody tr:last-child td{border-bottom:none}
+tbody tr:hover td{background:var(--panel-2)}
+td.mark{color:var(--amber);position:relative}
+td.mark::after{content:"◄ tú";font-family:var(--body);font-size:11px;color:var(--amber-2);margin-left:7px;letter-spacing:.03em}
+
+/* ---------- multipliers ---------- */
+.mults{display:grid;gap:1px;background:var(--rule);border:1px solid var(--rule);grid-template-columns:1fr}
+@media(min-width:640px){.mults{grid-template-columns:repeat(2,1fr)}}
+@media(min-width:1000px){.mults{grid-template-columns:repeat(4,1fr)}}
+.mult{background:var(--panel);padding:17px}
+.mult .x{font-family:var(--display);font-size:27px;font-weight:700;color:var(--amber);line-height:1}
+.mult h4{font-size:15px;margin:7px 0 6px}
+.mult p{font-size:13.4px;color:var(--ink-2)}
+.mult.warn .x{color:var(--bad)}
+
+/* ---------- footer ---------- */
+footer{margin-top:60px;border-top:1px solid var(--rule);padding-top:22px;font-size:13.5px;color:var(--ink-3)}
+footer h4{font-family:var(--mono);font-size:10.5px;letter-spacing:.13em;text-transform:uppercase;color:var(--ink-2);margin-bottom:10px}
+.srcs{display:flex;flex-wrap:wrap;gap:7px 16px;margin-bottom:22px}
+.srcs a{font-size:13px}
+.note{background:var(--panel);border:1px solid var(--rule);padding:14px 16px;margin-bottom:14px;color:var(--ink-2);font-size:13.4px}
+.note b{color:var(--ink)}
+@media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><defs>
+<g id="sty" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"></g>
+<symbol id="i-axe" viewBox="0 0 24 24"><path d="M13 4l7 4-3 5-6-3z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M11 10L4 20" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></symbol>
+<symbol id="i-club" viewBox="0 0 24 24"><path d="M17 3l4 4-8 8-4-4z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M9 11l-6 6 3 3 6-6" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></symbol>
+<symbol id="i-blade" viewBox="0 0 24 24"><path d="M20 3l-9 12-3-3z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M8 12l-4 5 3 3 4-4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></symbol>
+<symbol id="i-spear" viewBox="0 0 24 24"><path d="M19 2l-2 6-3-3z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M14 7L4 21" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M9 12l3 3" stroke="currentColor" stroke-width="1.4"/></symbol>
+<symbol id="i-wrench" viewBox="0 0 24 24"><path d="M16 3a5 5 0 00-4.5 7.2L3 18.7 5.3 21l8.5-8.5A5 5 0 1016 3z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><circle cx="16.5" cy="7.5" r="1.4" fill="currentColor"/></symbol>
+<symbol id="i-gun" viewBox="0 0 24 24"><path d="M2 8h13l3 3h4v3h-6l-2 3H9l-1-3H5z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M9 17l-2 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></symbol>
+<symbol id="i-ammo" viewBox="0 0 24 24"><rect x="4" y="10" width="5" height="10" rx="1" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M6.5 10V7a2 2 0 014 0v3" fill="none" stroke="currentColor" stroke-width="1.6"/><rect x="14" y="10" width="5" height="10" rx="1" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M16.5 10V7a2 2 0 014 0v3" fill="none" stroke="currentColor" stroke-width="1.6"/></symbol>
+<symbol id="i-saw" viewBox="0 0 24 24"><path d="M3 6h14l-2 5H3z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M3 11l2 2 2-2 2 2 2-2 2 2 2-2" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M17 6l4 3-3 4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></symbol>
+<symbol id="i-brick" viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="5" fill="none" stroke="currentColor" stroke-width="1.6"/><rect x="3" y="13" width="18" height="5" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M11 6v5M8 13v5M16 13v5" stroke="currentColor" stroke-width="1.4"/></symbol>
+<symbol id="i-pot" viewBox="0 0 24 24"><path d="M5 10h14v6a4 4 0 01-4 4H9a4 4 0 01-4-4z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M8 10c0-4 8-4 8 0" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M3 12h2M19 12h2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></symbol>
+<symbol id="i-flame" viewBox="0 0 24 24"><path d="M12 2c4 5 6 7 6 11a6 6 0 11-12 0c0-2 1-3 2-4 0 2 1 3 2 3 0-4 1-7 2-10z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></symbol>
+<symbol id="i-glass" viewBox="0 0 24 24"><path d="M7 3h10l-1 6a4 4 0 01-8 0z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M12 13v6M8 21h8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></symbol>
+<symbol id="i-bolt" viewBox="0 0 24 24"><path d="M13 2L4 14h6l-1 8 9-12h-6z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></symbol>
+<symbol id="i-stone" viewBox="0 0 24 24"><path d="M4 14l3-8 7-2 6 5-2 8-9 2z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M7 6l4 5 3-3M11 11l-3 8M11 11l7 3" stroke="currentColor" stroke-width="1.3"/></symbol>
+<symbol id="i-anvil" viewBox="0 0 24 24"><path d="M3 8h9l4 3h5c0 3-3 4-5 4H9l-1 2h7l-1 4H5l2-6H4z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></symbol>
+<symbol id="i-gear" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.2" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M19 5l-2 2M7 17l-2 2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></symbol>
+<symbol id="i-metal" viewBox="0 0 24 24"><path d="M3 17l6-11 6 11z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M13 20l7-9 2 9z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M2 21h20" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></symbol>
+<symbol id="i-needle" viewBox="0 0 24 24"><path d="M20 3L7 16" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><ellipse cx="19" cy="4" rx="1.6" ry="2.4" transform="rotate(45 19 4)" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M7 16l-2 5 5-2" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M4 8c3-2 5 2 8 0" fill="none" stroke="currentColor" stroke-width="1.4"/></symbol>
+<symbol id="i-carve" viewBox="0 0 24 24"><path d="M21 4l-8 8-2-2 8-8z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M11 10l-2 2 2 2 2-2" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M9 14l-5 5 1 1 5-5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M4 5l3 1 1 3" fill="none" stroke="currentColor" stroke-width="1.4"/></symbol>
+<symbol id="i-plant" viewBox="0 0 24 24"><path d="M12 21V9" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><path d="M12 12C9 12 6 10 6 6c4 0 6 2 6 6z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M12 15c3 0 6-2 6-6-4 0-6 2-6 6z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M7 21h10" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></symbol>
+<symbol id="i-meat" viewBox="0 0 24 24"><path d="M14 4a6 6 0 015 9c-2 3-5 3-7 5s-4 4-6 2-0-4 2-6 2-5 5-7z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><circle cx="14" cy="10" r="2.4" fill="none" stroke="currentColor" stroke-width="1.4"/></symbol>
+<symbol id="i-egg" viewBox="0 0 24 24"><path d="M12 3c4 0 6 6 6 10a6 6 0 11-12 0c0-4 2-10 6-10z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></symbol>
+<symbol id="i-run" viewBox="0 0 24 24"><circle cx="15" cy="4.5" r="2" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M8 21l3-5-2-4 1-4 4 2 2 3 3 1" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/><path d="M11 12l-4 1-2 4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M2 8h4M2 12h3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></symbol>
+<symbol id="i-nimble" viewBox="0 0 24 24"><path d="M12 3v18M3 12h18" stroke="currentColor" stroke-width="1.4"/><path d="M12 3l-2.5 3h5zM12 21l-2.5-3h5zM3 12l3-2.5v5zM21 12l-3-2.5v5z" fill="currentColor"/><circle cx="12" cy="12" r="2.6" fill="none" stroke="currentColor" stroke-width="1.6"/></symbol>
+<symbol id="i-heart" viewBox="0 0 24 24"><path d="M12 20s-7-4.4-7-9.4A3.9 3.9 0 0112 8a3.9 3.9 0 017 2.6c0 5-7 9.4-7 9.4z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M4 13h3l1.5-2.5L11 16l2-4 1.5 1H20" fill="none" stroke="currentColor" stroke-width="1.3"/></symbol>
+<symbol id="i-dumbbell" viewBox="0 0 24 24"><path d="M8 8v8M16 8v8M5 10v4M19 10v4M8 12h8" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/><path d="M2 11v2M22 11v2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></symbol>
+<symbol id="i-foot" viewBox="0 0 24 24"><path d="M9 21c-2 0-3-1.5-3-3.5 0-3 1-3 1-6C7 8 8 3 11 3s4 4 4 8c0 4-2 5-2 7 0 2-1.5 3-4 3z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><circle cx="18" cy="6" r="1.5" fill="none" stroke="currentColor" stroke-width="1.4"/><circle cx="20" cy="10" r="1.3" fill="none" stroke="currentColor" stroke-width="1.4"/></symbol>
+<symbol id="i-eye" viewBox="0 0 24 24"><path d="M2 12s4-6 10-6 10 6 10 6-4 6-10 6-10-6-10-6z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><circle cx="12" cy="12" r="2.8" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M3 4l18 16" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></symbol>
+<symbol id="i-fish" viewBox="0 0 24 24"><path d="M3 12c4-5 10-5 14 0-4 5-10 5-14 0z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M17 12l4-4v8z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><circle cx="7" cy="11" r="1" fill="currentColor"/></symbol>
+<symbol id="i-aid" viewBox="0 0 24 24"><rect x="2.5" y="7" width="19" height="12" rx="2" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M9 7V5a2 2 0 012-2h2a2 2 0 012 2v2" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M12 10v6M9 13h6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
+<symbol id="i-paw" viewBox="0 0 24 24"><ellipse cx="7" cy="9" rx="2" ry="2.6" fill="none" stroke="currentColor" stroke-width="1.5"/><ellipse cx="12" cy="7" rx="2" ry="2.7" fill="none" stroke="currentColor" stroke-width="1.5"/><ellipse cx="17" cy="9" rx="2" ry="2.6" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M12 12c3.5 0 5 2.4 5 4.6 0 2-1.7 3.4-5 3.4s-5-1.4-5-3.4C7 14.4 8.5 12 12 12z" fill="none" stroke="currentColor" stroke-width="1.6"/></symbol>
+<symbol id="i-leaf" viewBox="0 0 24 24"><path d="M20 4C9 4 4 9 4 15a5 5 0 005 5c6 0 11-5 11-16z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M17 7L6 18" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></symbol>
+<symbol id="i-trap" viewBox="0 0 24 24"><path d="M2 18h20" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M5 18V9l7-5 7 5v9" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M9 18v-5h6v5" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M12 4v-2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></symbol>
+<symbol id="i-search" viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M15.5 15.5L21 21" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+</defs></svg>
+
+<div class="wrap">
+
+<header class="masthead">
+  <div class="eyebrow"><span class="dot"></span> Project Zomboid · Build 42.20.4 Estable <span class="dot"></span> Guía en español</div>
+  <h1>Cómo subir <em>cada habilidad</em> en Build&nbsp;42</h1>
+  <p class="lede">La respuesta corta a tu pregunta: <b>desarmar muebles ya no da experiencia</b>. B42 cambió el juego de destruir a fabricar. Aquí está exactamente qué hacer, habilidad por habilidad, con tu personaje como punto de partida.</p>
+  <div class="verified">
+    <span class="chip live"><b>42.20.4</b> · versión estable actual</span>
+    <span class="chip">Estable desde el <b>29 jul 2026</b></span>
+    <span class="chip">Datos verificados el <b>7 sep 2026</b></span>
+    <span class="chip">35 habilidades · las de tu panel</span>
+  </div>
+</header>
+
+<section>
+  <div class="shead"><span class="num">01</span><h2>Desarmar: la duda que traes</h2><span class="aside">lo que cambió</span></div>
+  <div class="verdicts">
+    <div class="verdict no">
+      <div class="tag">Ya no funciona</div>
+      <h3>Desarmar muebles no da XP</h3>
+      <p>En Build 42, por defecto, destrozar sillas, mesas, cercas o estanterías <b>no te da nada de experiencia</b>. El truco clásico de B41 de recorrer las casas desarmando todo con el martillo está muerto.</p>
+      <p>Lo quitaron porque en multijugador la gente dejaba pueblos enteros sin un solo mueble nada más para farmear.</p>
+      <div class="fix">Si lo quieres de vuelta, es una opción de partida personalizada:
+        <span class="path">Sandbox → Personaje → «Maximum Dismantling XP Level»</span>
+        Viene en <b>0</b> (nunca da XP). Ponlo en <b>10</b> y se comporta como B41. Si lo pones en 1, solo da XP hasta que llegues a nivel 1.</div>
+    </div>
+    <div class="verdict si">
+      <div class="tag">Lo que sí funciona</div>
+      <h3>Fabricar. Repetir. Repetir.</h3>
+      <p>Ahora casi toda la XP de elaboración viene de <b>recetas</b>: cada objeto que fabricas otorga una cantidad fija de XP. Una cuchara de madera vale lo mismo la primera vez que la número cien.</p>
+      <p>Por eso la estrategia cambió por completo: encuentra la receta <b>más barata que puedas repetir</b> en tu nivel actual, junta material a lo bruto, y hazla en tanda.</p>
+      <div class="fix">Regla práctica: si una receta cuesta 1 rama y da 10 XP, le gana a una que cueste 3 tablones y dé 20 XP. <b>Lo que importa es XP por material, no XP por clic.</b></div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="shead"><span class="num">02</span><h2>Las tres reglas de oro</h2><span class="aside">aplican a todo</span></div>
+  <div class="rules">
+    <div class="rule"><div class="n">1</div><h4>El libro va primero, siempre</h4><p>Leer el volumen que corresponde a tu rango de nivel multiplica la XP de <b>×2 hasta ×6</b>. Grindear sin libro es tirar material. Lee, luego fabrica.</p></div>
+    <div class="rule"><div class="n">2</div><h4>Junta material antes de empezar</h4><p>El cuello de botella nunca es el tiempo, es el material. Haz una salida a juntar 40 ramas o 30 nódulos de pedernal y luego siéntate a producir en tanda.</p></div>
+    <div class="rule"><div class="n">3</div><h4>Fuerza y Estado físico van aparte</h4><p>No tienen libros, y <b>Fast Learner no les aplica</b>. Solo suben con ejercicio, correr y pelear. Y su curva es 20 veces más larga que la del resto.</p></div>
+  </div>
+</section>
+
+<section>
+  <div class="shead"><span class="num">03</span><h2>Tu personaje ahora mismo</h2><span class="aside">leído de tus capturas</span></div>
+  <div class="charwrap">
+    <div class="gamepanel">
+      <div class="gp-bar"><span class="gp-grip">⠿</span><h3>Habilidades</h3><div class="gp-btns"><i>✳</i><i>✓</i><i>✕</i></div></div>
+      <div class="gp-body" id="gp"></div>
+      <div class="gp-foot"><span>◼ nivel &gt; 0</span><span>◼ barra = progreso al siguiente nivel</span></div>
+    </div>
+
+    <div class="plan">
+      <h3>Tu plan de tres pasos</h3>
+      <p class="sub">Sacado de lo que ya tienes: Fuerza 9, Carpintería 4, Estado físico 3, Mantenimiento 2.</p>
+
+      <div class="step"><div class="badge">1</div><div>
+        <h4>Tallar 1 → 4 con puras ramas</h4>
+        <p>Es tu victoria más rápida y ya vienes en nivel 1. Cortas una <b>rama de árbol</b> → 1 vara de madera + 4 mangos pequeños → conviertes esos 4 mangos en <b>4 cucharas de madera</b>. Son unos <b>60 XP por rama</b>, y las ramas son infinitas.</p>
+        <div class="why">Tallar te desbloquea mangos y varas, que son insumo de media docena de habilidades más. Súbelo primero y todo lo demás se abarata.</div>
+      </div></div>
+
+      <div class="step"><div class="badge">2</div><div>
+        <h4>Albañilería 1 → 2 para abrir la forja</h4>
+        <p>Te falta un solo nivel (150 XP). Constrúyelo con <b>fogatas y muros de piedra</b>. Al llegar a 2 puedes levantar la <b>forja primitiva</b>, que es la puerta de entrada a Herrería y Metalistería.</p>
+        <div class="why">Herrería, Metalistería y Alfarería están todas en 0 y todas dependen de estaciones que necesitan Albañilería. Es el cuello de botella de tu personaje.</div>
+      </div></div>
+
+      <div class="step"><div class="badge">3</div><div>
+        <h4>Carrera: te faltan 23 XP</h4>
+        <p>Vas en <b>52/75</b>. Con una sola corrida decente subes a nivel 1. Es literalmente lo más barato que tienes pendiente en toda la lista.</p>
+        <div class="why">De paso, correr te alimenta Estado físico, y Estado físico hace que el menú de ejercicio rinda más. Con Fuerza 9 ya tienes la mitad del físico resuelto.</div>
+      </div></div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="shead"><span class="num">04</span><h2>La chuleta, habilidad por habilidad</h2><span class="aside" id="count"></span></div>
+  <div class="toolbar" id="filters">
+    <button class="fchip" data-f="*" aria-pressed="true">Todas</button>
+    <button class="fchip" data-f="Agricultura" aria-pressed="false">Agricultura</button>
+    <button class="fchip" data-f="Combate - Armas de fuego" aria-pressed="false">Armas de fuego</button>
+    <button class="fchip" data-f="Combate - Cuerpo a cuerpo" aria-pressed="false">Cuerpo a cuerpo</button>
+    <button class="fchip" data-f="Elaboración" aria-pressed="false">Elaboración</button>
+    <button class="fchip" data-f="Físico" aria-pressed="false">Físico</button>
+    <button class="fchip" data-f="Supervivencia" aria-pressed="false">Supervivencia</button>
+    <label class="search"><svg><use href="#i-search"/></svg><input type="search" id="q" placeholder="Buscar habilidad…" aria-label="Buscar habilidad"></label>
+  </div>
+  <div class="cards" id="cards"></div>
+</section>
+
+<section>
+  <div class="shead"><span class="num">05</span><h2>Cuánta XP falta de verdad</h2><span class="aside">las dos curvas</span></div>
+  <p class="lede" style="margin-bottom:20px">Hay exactamente dos curvas en el juego. Estos números <b>cuadran con tus capturas</b>: Carpintería 4 marca 1 500, Mantenimiento 2 marca 300, y Fuerza 9 marca 150 000. Si tu barra dice otra cosa, gana tu barra.</p>
+  <div class="charwrap">
+    <div>
+      <h4 style="font-family:var(--display);font-size:15px;letter-spacing:.05em;text-transform:uppercase;color:var(--ink-2);margin-bottom:9px">Curva normal · 33 habilidades</h4>
+      <div class="tablewrap"><table id="t-norm"><thead><tr><th>Nivel</th><th>XP para subir</th><th>Acumulado</th></tr></thead><tbody></tbody></table></div>
+    </div>
+    <div>
+      <h4 style="font-family:var(--display);font-size:15px;letter-spacing:.05em;text-transform:uppercase;color:var(--ink-2);margin-bottom:9px">Curva pasiva · Fuerza y Estado físico</h4>
+      <div class="tablewrap"><table id="t-pass"><thead><tr><th>Nivel</th><th>XP para subir</th><th>Acumulado</th></tr></thead><tbody></tbody></table></div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="shead"><span class="num">06</span><h2>Multiplicadores</h2><span class="aside">se apilan entre sí</span></div>
+  <div class="mults">
+    <div class="mult"><div class="x">×2 – ×6</div><h4>Libros de habilidad</h4><p>Principiante ×2, Intermedio ×3, Avanzado ×4, Experto ×5, Maestro ×6. Solo aplica dentro del rango de niveles de ese volumen. Cada habilidad entrenable tiene 5 tomos.</p></div>
+    <div class="mult"><div class="x">×1.3</div><h4>Fast Learner</h4><p>+30 % de XP a todo, por 6 puntos en creación. Se multiplica con el libro: un libro ×4 más Fast Learner sale ×5.2.</p></div>
+    <div class="mult"><div class="x">×1.3</div><h4>Crafty</h4><p>+30 % pero solo a las habilidades de elaboración. Con 12 habilidades en esa rama en B42, vale mucho más que antes.</p></div>
+    <div class="mult warn"><div class="x">×1.0</div><h4>Fuerza y Estado físico</h4><p>No hay libros para ellas y <b>Fast Learner no les aplica</b>. Lo único que las acelera: proteína (×1.5 solo a Fuerza) y los rasgos Fit o Athletic al crear el personaje.</p></div>
+  </div>
+  <p class="lede" style="margin-top:18px">Aparte están las <b>revistas de recetas</b>: esas no multiplican nada, solo <b>desbloquean</b> recetas que si no, no aparecen (por ejemplo <i>Iron Age Blacksmithing</i> para la forja primitiva). Y <b>Fast Reader</b> (×0.7 al tiempo de lectura) no da XP, pero te ahorra horas de estar sentado leyendo.</p>
+</section>
+
+<footer>
+  <h4>Sobre los números</h4>
+  <div class="note">Las cantidades de XP por receta están marcadas con <b>≈</b> porque el juego las ajusta entre parches y varias recetas nuevas de B42 todavía no están documentadas al detalle. La <b>fuente de verdad siempre es tu barra de progreso</b>: haz la receta una vez, mira cuánto se movió, y decide si vale la pena repetirla. Los datos de tu personaje están leídos de las dos capturas que mandaste (la de Mantenimiento usa 124.73, que es la más reciente de las dos).</div>
+  <h4>Fuentes consultadas</h4>
+  <div class="srcs">
+    <a href="https://pzwiki.net/wiki/Version_history">PZwiki · Historial de versiones</a>
+    <a href="https://projectzomboid.com/blog/news/2026/07/project-zomboid-build-42-20-released/">The Indie Stone · Build 42.20 lanzado</a>
+    <a href="https://steamcommunity.com/sharedfiles/filedetails/?id=3712882796">Steam · XP de todas las habilidades B42.20</a>
+    <a href="https://pzwiki.net/wiki/Build_42">PZwiki · Build 42</a>
+    <a href="https://projectzomboid.wiki/skills/">PZ Wiki · Hub de habilidades</a>
+    <a href="https://pzfans.com/carpentry_in_b42_why_your_old_tricks_don_t_work_anymore/">PZFans · Carpintería en B42</a>
+    <a href="https://www.bamboogaming.net/project-zomboid/skills">Bamboo Gaming · Base de datos de habilidades</a>
+    <a href="https://xgamingserver.com/tools/project-zomboid/skill-xp">XGamingServer · Calculadora de XP</a>
+  </div>
+  <p>Project Zomboid es propiedad de The Indie Stone. Esta es una guía hecha por fans, sin relación oficial con el estudio.</p>
+</footer>
+
+</div>
+
+<script>
+"use strict";
+/* Si algún día quieres usar los sprites oficiales del juego, llena este mapa
+   con {idHabilidad: "ruta/al/sprite.png"} y sustituyen automáticamente a los
+   iconos vectoriales. Vacío = se usan los iconos dibujados de la página. */
+const SPRITES = {};
+
+const CURVE_N = [75,150,300,750,1500,3000,4500,6000,7500,9000];
+const CURVE_P = [1500,3000,6000,9000,18000,30000,60000,90000,120000,150000];
+
+const S = [
+ {id:"agricultura",es:"Agricultura",en:"Farming",cat:"Agricultura",ic:"i-plant",lv:0,xp:0,
+  hacer:"Siembra, riega, quita la maleza y cosecha. La XP entra al cuidar la parcela día con día, no solo al cosechar.",
+  mats:"Azada o pala, semillas, regadera o botellas con agua",
+  xpv:"por cada acción de cultivo",
+  tip:"Haz parcelas grandes de coles o papas: muchas casillas = muchas acciones de riego y desmalezado cada mañana."},
+ {id:"carniceria",es:"Carnicería",en:"Butchering",cat:"Agricultura",ic:"i-meat",lv:0,xp:0,
+  hacer:"Cuelga un animal en un gancho de carnicero y destázalo. La vía barata: pesca y usa «Filetear» sobre una mesa.",
+  mats:"Cuchillo de carnicero o de caza, gancho colgador",
+  xpv:"escala con cuánta y qué tan buena carne sacas",
+  tip:"Filetear pescado es la ruta sin animales: te sube Carnicería y Pesca al mismo tiempo."},
+ {id:"animales",es:"Cuidado de animales",en:"Animal Care",cat:"Agricultura",ic:"i-egg",lv:0,xp:0,
+  hacer:"Dales agua y comida, recoge huevos, ordeña vacas, esquila ovejas y limpia el corral.",
+  mats:"Corral o gallinero, comida para animales, cubeta",
+  xpv:"por cada interacción de cuidado",
+  tip:"Las gallinas son el mejor arranque: ponen huevos diario, así que tienes XP todos los días sin gastar nada."},
+
+ {id:"punteria",es:"Puntería",en:"Aiming",cat:"Combate - Armas de fuego",ic:"i-gun",lv:0,xp:0,
+  hacer:"Disparar y ACERTAR. Los tiros fallados casi no cuentan.",
+  mats:"Cualquier arma de fuego y munición",
+  xpv:"por impacto",
+  tip:"Escopeta a quemarropa contra un grupo, o zombis atorados en una valla: no fallas y no desperdicias balas."},
+ {id:"recarga",es:"Recarga",en:"Reloading",cat:"Combate - Armas de fuego",ic:"i-ammo",lv:0,xp:0,
+  hacer:"Recargar el arma y llenar cargadores bala por bala.",
+  mats:"Un arma con cargador y balas sueltas",
+  xpv:"por recarga",
+  tip:"Puedes llenar y vaciar el mismo cargador dentro de casa. Es de las poquísimas habilidades que se grindean sin ningún riesgo."},
+
+ {id:"cortacont",es:"Arma corta contundente",en:"Short Blunt",cat:"Combate - Cuerpo a cuerpo",ic:"i-club",lv:1,xp:0,
+  hacer:"Pegarle a zombis con martillo, bat corto, sartén o llave inglesa.",
+  mats:"Un arma contundente corta",
+  xpv:"por golpe conectado",
+  tip:"Comparte grind con Mantenimiento: cada golpe real tiene chance de darte XP de las dos."},
+ {id:"hojacorta",es:"Arma de hoja corta",en:"Short Blade",cat:"Combate - Cuerpo a cuerpo",ic:"i-blade",lv:0,xp:27.11,
+  hacer:"Golpear y apuñalar con cuchillos, destornilladores o tijeras.",
+  mats:"Cuchillo de caza, de cocina, destornillador",
+  xpv:"por golpe conectado",
+  tip:"Ya llevas 27 de 75. Las ejecuciones por la espalda con cuchillo dan XP, son instantáneas y no hacen ruido."},
+ {id:"hojalarga",es:"Arma de hoja larga",en:"Long Blade",cat:"Combate - Cuerpo a cuerpo",ic:"i-blade",lv:0,xp:0,
+  hacer:"Pelear con machete, katana o espada.",
+  mats:"Machete o katana (son raros)",
+  xpv:"por golpe conectado",
+  tip:"Armas escasas y difíciles de reponer. No inviertas aquí salvo que ya tengas una y una piedra de afilar."},
+ {id:"largacont",es:"Arma larga contundente",en:"Long Blunt",cat:"Combate - Cuerpo a cuerpo",ic:"i-club",lv:0,xp:0,
+  hacer:"Pelear con bat de béisbol, tubo, palanca o palo.",
+  mats:"Bat, tubo de metal, palanca",
+  xpv:"por golpe conectado",
+  tip:"Es la rama de combate más fuerte del juego: mucho alcance y derriba en grupo. Si vas a subir una sola, que sea esta."},
+ {id:"hacha",es:"Hacha",en:"Axe",cat:"Combate - Cuerpo a cuerpo",ic:"i-axe",lv:0,xp:0,
+  hacer:"Pelear con hacha. Y talar árboles también te da XP de Hacha.",
+  mats:"Hacha de bombero, hacha común o hachuela",
+  xpv:"por golpe, y por árbol talado",
+  tip:"Talar es la única forma de subir combate sin zombis enfrente. De pilón te sube Fuerza y te llena de troncos."},
+ {id:"lanza",es:"Lanza",en:"Spear",cat:"Combate - Cuerpo a cuerpo",ic:"i-spear",lv:0,xp:0,
+  hacer:"Atacar con lanza. Las muertes instantáneas también cuentan.",
+  mats:"Lanza de madera, o lanza con cuchillo amarrado",
+  xpv:"por golpe conectado",
+  tip:"Las lanzas se rompen rapidísimo y no se reparan bien. Súbela solo si te vas a especializar en ella."},
+ {id:"mantenimiento",es:"Mantenimiento",en:"Maintenance",cat:"Combate - Cuerpo a cuerpo",ic:"i-wrench",lv:2,xp:124.73,
+  hacer:"Alrededor de la mitad de tus golpes reales tiran un chequeo y dan ≈2 XP. También suman afilar armas (≈5 XP) y fabricar navajas improvisadas (≈10–30 XP).",
+  mats:"Cualquier arma cuerpo a cuerpo; piedra de afilar",
+  xpv:"≈2 XP por chequeo · ≈5 afilar · 10–30 navajas",
+  tip:"Empujar, patear y rematar en el suelo NO cuentan. Tienen que ser ataques de verdad con el arma."},
+
+ {id:"albanileria",es:"Albañilería",en:"Masonry",cat:"Elaboración",ic:"i-brick",lv:1,xp:0,
+  hacer:"Construye fogatas, muros de piedra, marcos de puerta y marcos de ventana (≈20 XP cada uno a partir de nivel 2).",
+  mats:"Piedras, martillo de piedra o mazo, mortero",
+  xpv:"≈20 XP por estructura",
+  tip:"Necesitas nivel 2 para levantar tu primera forja. Ese es el objetivo real: sin forja no existen Herrería ni la mitad de las recetas de metal."},
+ {id:"alfareria",es:"Alfarería",en:"Pottery",cat:"Elaboración",ic:"i-pot",lv:0,xp:0,
+  hacer:"Haz cuencos, tazas y platos de barro en el torno (≈15 XP cada uno) y luego hornéalos.",
+  mats:"Arcilla, torno de alfarero, horno",
+  xpv:"≈15 XP por pieza",
+  tip:"La arcilla sale rebuscando en bosque (grumos de 2 a 4) o excavando depósitos con pala y saco. Con solo 75 XP llegas a nivel 1 y desbloqueas crisoles."},
+ {id:"carpinteria",es:"Carpintería",en:"Carpentry",cat:"Elaboración",ic:"i-saw",lv:4,xp:64.74,
+  hacer:"Construir cosas nuevas: sillas, mesas, estanterías, paredes, escaleras, barricadas. Desarmar ya NO cuenta.",
+  mats:"Tablones, clavos, martillo, serrucho",
+  xpv:"fija por estructura construida",
+  tip:"Con nivel 4 ya haces muebles de gama media. Construye la misma estructura, quítala y vuélvela a construir: la XP se da cada vez que la levantas."},
+ {id:"cocina",es:"Cocina",en:"Cooking",cat:"Elaboración",ic:"i-flame",lv:0,xp:0,
+  hacer:"Cocinar bien. Sopas y guisos son los más generosos y de paso te salvan ingredientes que ya se iban a echar a perder.",
+  mats:"Cazuela u olla, fuente de calor, ingredientes",
+  xpv:"por platillo terminado con éxito",
+  tip:"Quemar la comida no te quita XP, pero sí gasta combustible e ingredientes. Pon el temporizador y no te distraigas."},
+ {id:"cristaleria",es:"Cristalería",en:"Glassmaking",cat:"Elaboración",ic:"i-glass",lv:0,xp:0,
+  hacer:"Fundir arena o vidrio roto para hacer paneles de vidrio. No pide nivel mínimo, puedes empezar hoy.",
+  mats:"Arena o vidrio roto, horno de fundición",
+  xpv:"por panel fundido",
+  tip:"Con Alfarería alrededor de 2 desbloqueas el soplador de vidrio, que es donde empiezan las recetas que valen la pena."},
+ {id:"electronica",es:"Electrónica",en:"Electrical",cat:"Elaboración",ic:"i-bolt",lv:0,xp:0,
+  hacer:"Desarmar aparatos electrónicos (esto sí sigue dando XP), reparar el generador con chatarra electrónica (≈5 XP) y fabricar radios y luces improvisadas.",
+  mats:"Destornillador, pinzas, chatarra electrónica",
+  xpv:"≈5 XP por reparación de generador",
+  tip:"Los electrodomésticos grandes de cocina industrial dan muchísima más XP que los relojes digitales. Vete a los restaurantes y cocinas comerciales."},
+ {id:"herreria",es:"Herrería",en:"Blacksmith",cat:"Elaboración",ic:"i-anvil",lv:0,xp:0,
+  hacer:"Forjar en el yunque: clavos, bandas de hierro, herramientas y piezas de arma.",
+  mats:"Forja primitiva (pide Albañilería 2), yunque, tenazas rústicas, martillo, metal",
+  xpv:"≈10 XP por banda de hierro pequeña",
+  tip:"Las bandas de hierro pequeñas no piden nivel y solo necesitan metal recogido. Ese es el grind de arranque. Para los clavos ya te pide Herrería 1 y la revista de forja."},
+ {id:"labrarpiedra",es:"Labrar piedra",en:"Knapping",cat:"Elaboración",ic:"i-stone",lv:0,xp:0,
+  hacer:"Convierte nódulos de pedernal en lascas afiladas: ≈10 XP cada una y no pide nivel ni revista. Luego esas lascas se vuelven hojas de piedra.",
+  mats:"Nódulos de pedernal + un martillo de piedra o mazo (la herramienta no se gasta)",
+  xpv:"≈10 XP por lasca",
+  tip:"Los nódulos salen en modo búsqueda filtrando «piedras», o de rocas de pedernal con «Extraer depósito mineral». Junta 30 o 40 y hazlas todas de un jalón."},
+ {id:"mecanica",es:"Mecánica",en:"Mechanics",cat:"Elaboración",ic:"i-gear",lv:0,xp:0,
+  hacer:"Quitar e instalar piezas de coche. Fallar te da 0.3 XP; acertar te da entre 1.3 y 2.0 XP.",
+  mats:"Destornillador, llave inglesa, gato y llave de cruz",
+  xpv:"1.3–2.0 XP al acertar · 0.3 al fallar",
+  tip:"Cada pieza de cada coche solo cuenta una vez cada 24 h. Consigue un coche de deshuesadero de sacrificio y concéntrate en cofre, cajuela, asientos y ventanas; evita parabrisas y mofle mientras estés en nivel bajo."},
+ {id:"metalisteria",es:"Metalistería",en:"Metalworking",cat:"Elaboración",ic:"i-metal",lv:0,xp:0,
+  hacer:"Soldadura: paredes y muebles de chatarra, armaduras, y desguazar coches destruidos.",
+  mats:"Soplete de propano, máscara de soldar, varillas, chatarra",
+  xpv:"por pieza soldada",
+  tip:"Un solo coche destrozado te suelta montañas de chatarra. Es la habilidad más cara de arrancar porque el propano se acaba: guárdalo para cuando ya tengas la revista."},
+ {id:"sastreria",es:"Sastrería",en:"Tailoring",cat:"Elaboración",ic:"i-needle",lv:0,xp:0,
+  hacer:"Nivel 1: tejer gorros, bufandas y carpetitas (≈9 XP). Nivel 2: calcetines y polainas (≈13 XP) y montar armadura de ropa (≈10 XP). Nivel 3–4: suéteres y pasamontañas (≈20–30 XP).",
+  mats:"Aguja e hilo, tiras de tela, agujas de tejer y estambre",
+  xpv:"≈9–30 XP según la prenda",
+  tip:"Rasga la ropa que no uses para sacar tiras y practica parchando ropa chatarra. Coser parches en tu propia chamarra te sube nivel Y te da protección real contra mordidas."},
+ {id:"tallar",es:"Tallar",en:"Carving",cat:"Elaboración",ic:"i-carve",lv:1,xp:0,
+  hacer:"Nivel 1: mangos pequeños y varas de madera (≈10 XP c/u). Nivel 2: mangos medianos y tablones (≈20 XP). Nivel 3: tablas, mangos grandes, agujas de tejer y tubos (≈30 XP). Nivel 4: cubetas y palas de madera.",
+  mats:"Un cuchillo, más ramas, tablones o troncos",
+  xpv:"≈10 XP nivel 1 → ≈90 XP nivel 9",
+  tip:"El bucle campeón: una rama → 1 vara + 4 mangos pequeños → esos 4 mangos → 4 cucharas de madera. Son ≈60 XP por rama, y las ramas no se acaban nunca."},
+
+ {id:"carrera",es:"Carrera",en:"Sprinting",cat:"Físico",ic:"i-run",lv:0,xp:52,
+  hacer:"Correr en sprint. Literal nada más eso.",
+  mats:"Nada. Solo resistencia y espacio libre.",
+  xpv:"continua mientras esprintas",
+  tip:"Vas en 52 de 75: con una corrida larga por carretera despejada ya subes a nivel 1. Es lo más barato que tienes pendiente."},
+ {id:"destreza",es:"Destreza",en:"Nimble",cat:"Físico",ic:"i-nimble",lv:0,xp:1.95,
+  hacer:"Moverte en postura de combate (con el botón derecho apretado, apuntando) y cambiar de casilla.",
+  mats:"Un arma equipada",
+  xpv:"al moverte apuntando",
+  tip:"Camina apuntando en círculos dentro de tu casa segura. Ojo: parado apuntando no cuenta, tienes que cambiar de casilla."},
+ {id:"fisico",es:"Estado físico",en:"Fitness",cat:"Físico",ic:"i-heart",lv:3,xp:80,pass:true,
+  hacer:"Menú Salud → Ejercicio. Sentadillas y abdominales cargan a Estado físico; los burpees pegan a las dos.",
+  mats:"Nada, pero necesitas estar descansado y bien comido",
+  xpv:"por sesión de ejercicio",
+  tip:"Sube Estado físico antes que Fuerza: entre más alto lo tengas, más rinde cada sesión del menú de ejercicio."},
+ {id:"fuerza",es:"Fuerza",en:"Strength",cat:"Físico",ic:"i-dumbbell",lv:9,xp:136,pass:true,
+  hacer:"Lagartijas y pesas en el menú de ejercicio. También cargar más de la mitad de tu peso máximo y talar árboles.",
+  mats:"Mancuernas o pesas (opcional), un hacha",
+  xpv:"por sesión, por carga pesada y por árbol",
+  tip:"Ya estás en 9, casi tope. Comer proteína multiplica ×1.5 la XP de Fuerza (a Estado físico no le hace nada)."},
+ {id:"pieslig",es:"Pies ligeros",en:"Lightfooted",cat:"Físico",ic:"i-foot",lv:0,xp:1.3,
+  hacer:"Moverte cerca de zombis. Entre más cerca estén, más rápido sube.",
+  mats:"Nada",
+  xpv:"continua con zombis cerca",
+  tip:"No la confundas con Sigilo: Pies ligeros baja el RUIDO de tus pasos. Sube caminando junto a hordas, agachado o no."},
+ {id:"sigilo",es:"Sigilo",en:"Sneaking",cat:"Físico",ic:"i-eye",lv:0,xp:3.25,
+  hacer:"Ir agachado cerca de zombis que PODRÍAN verte, sin que te vean.",
+  mats:"Nada",
+  xpv:"cuando pasas sin ser detectado",
+  tip:"Agacharte en un campo vacío no da absolutamente nada. Necesitas un grupo real, algo de cobertura de por medio, y pasar a una distancia donde te podrían detectar pero no lo hacen."},
+
+ {id:"pesca",es:"Pesca",en:"Fishing",cat:"Supervivencia",ic:"i-fish",lv:0,xp:0,
+  hacer:"Caña con carnada. Cuando pica entra el minijuego de tensión: mantén la línea en la franja segura, ni muy tenso (se revienta) ni muy flojo (se escapa).",
+  mats:"Caña de pescar, anzuelo, carnada (lombrices)",
+  xpv:"por pez sacado",
+  tip:"Amanecer y atardecer rinden más. Las lombrices salen de los surcos de cultivo o rebuscando. Y de pilón te sube Carnicería al filetear."},
+ {id:"primeros",es:"Primeros auxilios",en:"First Aid",cat:"Supervivencia",ic:"i-aid",lv:0,xp:0,
+  hacer:"Vendar, desinfectar, suturar y entablillar heridas de verdad.",
+  mats:"Vendas, alcohol, aguja de sutura, tablillas",
+  xpv:"por herida tratada",
+  tip:"No hay atajo cómodo: necesitas estar lastimado. Los rasguños de arbustos y de ventanas rotas son la forma menos peligrosa de practicar."},
+ {id:"rastreo",es:"Rastreo",en:"Tracking",cat:"Supervivencia",ic:"i-paw",lv:0,xp:0,
+  hacer:"Activa el modo rastreo y sigue las huellas de animales por el bosque.",
+  mats:"Nada, solo tiempo y bosque",
+  xpv:"por rastro seguido",
+  tip:"Es nueva de B42. Sirve para encontrar animales que luego destazas, así que se alimenta sola con Carnicería."},
+ {id:"rebuscar",es:"Rebuscar",en:"Foraging",cat:"Supervivencia",ic:"i-leaf",lv:0,xp:0,
+  hacer:"Activa el modo búsqueda y camina. Cada cosa que encuentras da XP.",
+  mats:"Nada",
+  xpv:"por hallazgo",
+  tip:"De día y con sol rinde mucho más. Filtra por categoría (comida, piedras, plantas medicinales) para juntar material dirigido: así de paso surtes Labrar piedra y Alfarería."},
+ {id:"trampas",es:"Trampas",en:"Trapping",cat:"Supervivencia",ic:"i-trap",lv:0,xp:0,
+  hacer:"Poner trampas (jaula, caja, lazo) con carnada y ALEJARTE mínimo 75 casillas.",
+  mats:"Trampa armada + carnada",
+  xpv:"por animal atrapado",
+  tip:"Si te quedas cerca no cae nada, es la falla número uno. Ponlas al atardecer para agarrar animales nocturnos y revísalas en la mañana."}
+];
+
+const CATS = ["Agricultura","Combate - Armas de fuego","Combate - Cuerpo a cuerpo","Elaboración","Físico","Supervivencia"];
+const nf = new Intl.NumberFormat("es-MX");
+const need = s => (s.pass ? CURVE_P : CURVE_N)[Math.min(s.lv,9)];
+const fmtXp = v => Number.isInteger(v) ? nf.format(v) : v.toFixed(2);
+
+/* ---- store: qué ya grindeaste (solo en este navegador) ---- */
+const KEY = "pz-b42-hecho";
+let done = {};
+try { done = JSON.parse(localStorage.getItem(KEY) || "{}") || {}; } catch (e) { done = {}; }
+const save = () => { try { localStorage.setItem(KEY, JSON.stringify(done)); } catch (e) {} };
+
+/* ---- panel réplica del juego ---- */
+const gp = document.getElementById("gp");
+CATS.forEach(c => {
+  const h = document.createElement("div");
+  h.className = "gp-cat";
+  h.innerHTML = '<span>▾</span>' + c;
+  gp.appendChild(h);
+  S.filter(s => s.cat === c).forEach(s => {
+    const n = need(s), pct = Math.max(0, Math.min(100, s.xp / n * 100));
+    const r = document.createElement("div");
+    r.className = "gp-row" + (s.lv > 0 ? " lvl-up" : "") + (s.xp > 0 && s.lv === 0 ? " hot" : "");
+    r.innerHTML =
+      '<span class="nm" title="' + s.es + '">' + s.es + '</span>' +
+      '<span class="lv">' + s.lv + '</span>' +
+      '<span class="gp-track"><span class="gp-fill" data-pct="' + pct.toFixed(2) + '"></span></span>' +
+      '<span class="gp-xp">' + fmtXp(s.xp) + '/' + nf.format(n) + '</span>';
+    gp.appendChild(r);
+  });
+});
+requestAnimationFrame(() => {
+  gp.querySelectorAll(".gp-fill").forEach(f => { f.style.width = f.dataset.pct + "%"; });
+});
+
+/* ---- fichas ---- */
+const cards = document.getElementById("cards");
+const countEl = document.getElementById("count");
+
+function icon(s) {
+  if (SPRITES[s.id]) return '<img src="' + SPRITES[s.id] + '" alt="">';
+  return '<svg aria-hidden="true"><use href="#' + s.ic + '"/></svg>';
+}
+
+function render(filter, query) {
+  const q = (query || "").trim().toLowerCase();
+  const list = S.filter(s =>
+    (filter === "*" || s.cat === filter) &&
+    (!q || s.es.toLowerCase().includes(q) || s.en.toLowerCase().includes(q) || s.hacer.toLowerCase().includes(q))
+  );
+  cards.innerHTML = "";
+  if (!list.length) {
+    cards.innerHTML = '<p class="empty">Nada coincide con esa búsqueda.</p>';
+    countEl.textContent = "0 de " + S.length;
+    return;
+  }
+  list.forEach(s => {
+    const el = document.createElement("article");
+    el.className = "card" + (done[s.id] ? " done" : "");
+    el.innerHTML =
+      '<div class="card-h">' +
+        '<div class="ico">' + icon(s) + '</div>' +
+        '<div class="t"><h3>' + s.es + '</h3><div class="en">' + s.en + '</div></div>' +
+        '<span class="lvpill' + (s.lv > 0 ? ' has' : '') + '">Nv ' + s.lv + '</span>' +
+      '</div>' +
+      '<div class="card-b">' +
+        '<div class="field"><span class="k">Qué hacer</span><span class="v">' + s.hacer + '</span></div>' +
+        '<div class="field mats"><span class="k">Necesitas</span><span class="v">' + s.mats + '</span></div>' +
+        '<div class="field xp"><span class="k">XP</span><span class="v">' + s.xpv + '</span></div>' +
+        '<p class="tip">' + s.tip + '</p>' +
+      '</div>' +
+      '<div class="card-f"><label class="check"><input type="checkbox"' + (done[s.id] ? " checked" : "") + '><span>Ya lo estoy trabajando</span></label></div>';
+    el.querySelector("input").addEventListener("change", e => {
+      done[s.id] = e.target.checked;
+      if (!e.target.checked) delete done[s.id];
+      el.classList.toggle("done", e.target.checked);
+      save();
+    });
+    cards.appendChild(el);
+  });
+  countEl.textContent = list.length + " de " + S.length;
+}
+
+let curFilter = "*";
+document.getElementById("filters").addEventListener("click", e => {
+  const b = e.target.closest(".fchip");
+  if (!b) return;
+  document.querySelectorAll(".fchip").forEach(x => x.setAttribute("aria-pressed", String(x === b)));
+  curFilter = b.dataset.f;
+  render(curFilter, document.getElementById("q").value);
+});
+document.getElementById("q").addEventListener("input", e => render(curFilter, e.target.value));
+render("*", "");
+
+/* ---- tablas de curva ---- */
+function curve(tbl, arr, mark) {
+  const tb = document.querySelector(tbl + " tbody");
+  let acc = 0;
+  arr.forEach((v, i) => {
+    acc += v;
+    const tr = document.createElement("tr");
+    tr.innerHTML =
+      '<td' + (mark.includes(i) ? ' class="mark"' : '') + '>' + i + ' → ' + (i + 1) + '</td>' +
+      '<td>' + nf.format(v) + '</td>' +
+      '<td style="color:var(--ink-3)">' + nf.format(acc) + '</td>';
+    tb.appendChild(tr);
+  });
+}
+curve("#t-norm", CURVE_N, [1, 2, 4]);
+curve("#t-pass", CURVE_P, [3, 9]);
+</script>
