@@ -39,7 +39,7 @@
 
     <!-- Intro -->
     <div style="display: flex; flex-direction: column; gap: 10px; padding: 26px 20px 20px; background: #E9E1DF;">
-      <p class="s" style="margin: 0; font-size: 17px; line-height: 1.55; color: #6E6058; font-weight: 300;">Delgados para apilar, con piedra para los días que quieres que se note, y de sello para siempre.</p>
+      <p class="s" style="margin: 0; font-size: 17px; line-height: 1.55; color: #6E6058; font-weight: 300;">Los delgados son para apilar, el de piedra para cuando quieres que se note, y el de sello para todos los días.</p>
       <div style="display: flex; gap: 9px; padding-top: 6px;">
         <div class="n" style="height: 44px; line-height: 44px; padding: 0 18px; border-radius: 999px; background: #5A4318; color: #F7F2EE; font-size: 12.5px; white-space: nowrap;">Todos</div>
         <div class="n" style="height: 44px; line-height: 44px; padding: 0 18px; border-radius: 999px; border: 1px solid rgba(90,67,24,0.25); color: #5A4318; font-size: 12.5px; white-space: nowrap;">Para apilar</div>
@@ -72,7 +72,7 @@
             <circle cx="60" cy="34" r="5" fill="#FBF7F4"></circle>
           </svg>
         </div>
-        <div class="d" style="font-size: 17px; color: #3C2B12;">Set de tres</div>
+        <div class="d" style="font-size: 17px; color: #3C2B12;">Juego de tres</div>
       </div>
 
       <div style="display: flex; flex-direction: column; gap: 10px;">
@@ -84,7 +84,7 @@
             <ellipse cx="60" cy="44" rx="10.5" ry="7.4"></ellipse>
           </svg>
         </div>
-        <div class="d" style="font-size: 17px; color: #3C2B12;">Anillo sello</div>
+        <div class="d" style="font-size: 17px; color: #3C2B12;">Anillo de sello</div>
       </div>
 
       <div style="display: flex; flex-direction: column; gap: 10px;">
@@ -92,7 +92,6 @@
           <svg width="110" height="110" viewBox="0 0 120 120" fill="none" stroke="#5A4318" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round">
             <ellipse cx="60" cy="62" rx="26" ry="31"></ellipse>
             <ellipse cx="60" cy="62" rx="22" ry="26.5"></ellipse>
-            <path d="M60 31 C64 33.5 64 35.5 60 38" stroke="{{acento}}"></path>
           </svg>
         </div>
         <div class="d" style="font-size: 17px; color: #3C2B12;">Anillo delgado</div>
@@ -104,7 +103,7 @@
   <!-- Barra inferior fija -->
   <div style="position: absolute; left: 0; right: 0; bottom: 0; display: flex; align-items: center; gap: 12px; padding: 14px 20px 22px; background: rgba(247,242,238,0.94); border-top: 1px solid rgba(90,67,24,0.12); backdrop-filter: blur(8px);">
     <div style="display: flex; flex-direction: column; gap: 2px; flex-grow: 1;">
-      <div class="lbl" style="color: #8A7A70;">¿Te gustó alguno?</div>
+      <div class="lbl" style="color: {{acentoTexto}};">¿Te gustó alguno?</div>
       <div class="s" style="font-size: 16px; color: #3C2B12;">Te paso fotos y medidas</div>
     </div>
     <a href="#" class="n" style="display: flex; align-items: center; justify-content: center; gap: 9px; height: 50px; padding: 0 22px; background: #5A4318; color: #F7F2EE; font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase; border-radius: 999px; white-space: nowrap;">
@@ -117,10 +116,22 @@
 
 </div>
 </x-dc>
-<script data-dc-script data-props='{"acento":{"editor":"color","default":"#B9986B","options":["#B9986B","#5A4318","#C29A8E","#8A7A70"],"section":"Marca"},"$preview":{"width":390,"height":844}}'>
+<script data-dc-script data-props='{"acento":{"editor":"color","default":"#B9986B","options":["#B9986B","#5A4318","#6E6058","#3C2B12"],"section":"Marca"},"$preview":{"width":390,"height":844}}'>
 class Component extends DCLogic {
+  oscurecer(valor) {
+    var m = /^#([0-9a-fA-F]{6})$/.exec(String(valor || '').trim());
+    if (!m) { return '#745C3A'; }
+    var n = parseInt(m[1], 16);
+    var c = [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+    var destino = [60, 43, 18];
+    return '#' + c.map(function (v, i) {
+      var x = Math.round(v + (destino[i] - v) * 0.55);
+      return (x < 16 ? '0' : '') + x.toString(16);
+    }).join('');
+  }
   renderVals() {
-    return { acento: this.props.acento ?? '#B9986B' };
+    var acento = this.props.acento ?? '#B9986B';
+    return { acento: acento, acentoTexto: this.oscurecer(acento) };
   }
 }
 </script>

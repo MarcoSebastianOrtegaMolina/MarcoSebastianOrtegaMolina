@@ -1,12 +1,48 @@
 {
   "artboards": [
-    { "file": "Main.dc.html", "x": 0, "y": 0, "w": 1440, "h": 4800, "title": "Bless — página completa" },
-    { "file": "Movil.dc.html", "x": 1600, "y": 0, "w": 390, "h": 844, "title": "Celular — inicio" },
-    { "file": "MovilAnillos.dc.html", "x": 2080, "y": 0, "w": 390, "h": 844, "title": "Celular — anillos" },
-    { "file": "Identidad.dc.html", "x": 1600, "y": 1000, "w": 1180, "h": 2300, "title": "Identidad de marca" }
+    {
+      "file": "Main.dc.html",
+      "x": 0,
+      "y": 0,
+      "w": 1440,
+      "h": 4800,
+      "title": "Bless — página completa"
+    },
+    {
+      "file": "Movil.dc.html",
+      "x": 1600,
+      "y": 0,
+      "w": 390,
+      "h": 844,
+      "title": "Celular — inicio"
+    },
+    {
+      "file": "MovilAnillos.dc.html",
+      "x": 2080,
+      "y": 0,
+      "w": 390,
+      "h": 844,
+      "title": "Celular — anillos"
+    },
+    {
+      "file": "Identidad.dc.html",
+      "x": 1600,
+      "y": 1000,
+      "w": 1180,
+      "h": 2300,
+      "title": "Identidad de marca"
+    }
   ],
   "annotations": [
-    { "id": "nota-placeholders", "x": 1600, "y": 3440, "w": 420, "text": "Los recuadros punteados color oro son los datos que solo tu cuñada tiene: material, cuidados, empaque, WhatsApp, Instagram y envíos.\n\nLas ilustraciones de las piezas son de línea, hechas a propósito: se cambian por sus fotos reales cuando las tenga." }
+    {
+      "id": "nota-placeholders",
+      "x": 1600,
+      "y": 3440,
+      "w": 420,
+      "text": "Los recuadros punteados en dorado son los datos que solo tú tienes: el material, los cuidados, el empaque, el WhatsApp, el Instagram y los envíos.\n\nLas ilustraciones de las piezas son de línea, hechas a propósito: se cambian por tus fotos reales cuando las tengas."
+    }
   ],
-  "launch": { "view": "canvas" }
+  "launch": {
+    "view": "canvas"
+  }
 }

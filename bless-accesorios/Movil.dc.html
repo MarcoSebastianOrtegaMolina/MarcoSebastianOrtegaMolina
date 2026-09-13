@@ -28,12 +28,12 @@
 
     <!-- Barra superior -->
     <div style="display: flex; align-items: center; justify-content: space-between; height: 56px; padding: 0 20px; background: #F7F2EE; border-bottom: 1px solid rgba(90,67,24,0.12);">
-      <svg width="22" height="22" viewBox="0 0 24 24" stroke="#5A4318" stroke-width="1.3" stroke-linecap="round">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#5A4318" stroke-width="1.3" stroke-linecap="round">
         <path d="M4 8h16"></path><path d="M4 14h16"></path>
       </svg>
       <div style="display: flex; flex-direction: column; align-items: center; gap: 1px;">
         <div class="d" style="font-size: 21px; line-height: 1; color: #5A4318;">Bless</div>
-        <div class="n" style="font-size: 6.5px; letter-spacing: 0.4em; text-transform: uppercase; color: #8A7A70; padding-left: 3px;">Accesorios</div>
+        <div class="n" style="font-size: 7.5px; letter-spacing: 0.36em; text-transform: uppercase; color: #6E6058; padding-left: 3px;">Accesorios</div>
       </div>
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#5A4318" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round">
         <path d="M20.5 11.6a8.5 8.5 0 0 1-12.4 7.5L3.5 20.5l1.4-4.5a8.5 8.5 0 1 1 15.6-4.4Z"></path>
@@ -42,7 +42,7 @@
 
     <!-- Hero -->
     <div style="display: flex; flex-direction: column; gap: 16px; padding: 30px 20px 32px; background: #E9E1DF;">
-      <div class="lbl" style="color: {{acento}};">Anillos · Pulseras · Collares</div>
+      <div class="lbl" style="color: {{acentoTexto}};">Anillos · Collares · Aretes</div>
       <h1 class="d" style="margin: 0; font-size: 40px; line-height: 1.0; color: #3C2B12;">Detalles pequeños<br>que se quedan<br>contigo.</h1>
       <p class="s" style="margin: 0; font-size: 16px; line-height: 1.55; color: #6E6058; font-weight: 300;">Piezas elegidas una por una para usarse todos los días.</p>
       <a href="#" class="n" style="display: flex; align-items: center; justify-content: center; height: 48px; margin-top: 4px; background: #5A4318; color: #F7F2EE; font-size: 11.5px; letter-spacing: 0.16em; text-transform: uppercase; border-radius: 999px;">Ver la colección</a>
@@ -50,10 +50,10 @@
 
     <!-- Chips de categoría -->
     <div style="display: flex; gap: 9px; padding: 18px 20px 4px;">
-      <div class="n" style="height: 44px; line-height: 44px; padding: 0 18px; border-radius: 999px; background: #5A4318; color: #F7F2EE; font-size: 12.5px; letter-spacing: 0.05em; white-space: nowrap;">Todo</div>
-      <div class="n" style="height: 44px; line-height: 44px; padding: 0 18px; border-radius: 999px; border: 1px solid rgba(90,67,24,0.25); color: #5A4318; font-size: 12.5px; letter-spacing: 0.05em; white-space: nowrap;">Anillos</div>
-      <div class="n" style="height: 44px; line-height: 44px; padding: 0 18px; border-radius: 999px; border: 1px solid rgba(90,67,24,0.25); color: #5A4318; font-size: 12.5px; letter-spacing: 0.05em; white-space: nowrap;">Pulseras</div>
-      <div class="n" style="height: 44px; line-height: 44px; padding: 0 18px; border-radius: 999px; border: 1px solid rgba(90,67,24,0.25); color: #5A4318; font-size: 12.5px; letter-spacing: 0.05em; white-space: nowrap;">Collares</div>
+      <div class="n" style="height: 44px; line-height: 44px; padding: 0 17px; border-radius: 999px; background: #5A4318; color: #F7F2EE; font-size: 12.5px; white-space: nowrap;">Todo</div>
+      <div class="n" style="height: 44px; line-height: 44px; padding: 0 17px; border-radius: 999px; border: 1px solid rgba(90,67,24,0.25); color: #5A4318; font-size: 12.5px; white-space: nowrap;">Anillos</div>
+      <div class="n" style="height: 44px; line-height: 44px; padding: 0 17px; border-radius: 999px; border: 1px solid rgba(90,67,24,0.25); color: #5A4318; font-size: 12.5px; white-space: nowrap;">Collares</div>
+      <div class="n" style="height: 44px; line-height: 44px; padding: 0 17px; border-radius: 999px; border: 1px solid rgba(90,67,24,0.25); color: #5A4318; font-size: 12.5px; white-space: nowrap;">Aretes</div>
     </div>
 
     <!-- Rejilla -->
@@ -124,10 +124,22 @@
 
 </div>
 </x-dc>
-<script data-dc-script data-props='{"acento":{"editor":"color","default":"#B9986B","options":["#B9986B","#5A4318","#C29A8E","#8A7A70"],"section":"Marca"},"$preview":{"width":390,"height":844}}'>
+<script data-dc-script data-props='{"acento":{"editor":"color","default":"#B9986B","options":["#B9986B","#5A4318","#6E6058","#3C2B12"],"section":"Marca"},"$preview":{"width":390,"height":844}}'>
 class Component extends DCLogic {
+  oscurecer(valor) {
+    var m = /^#([0-9a-fA-F]{6})$/.exec(String(valor || '').trim());
+    if (!m) { return '#745C3A'; }
+    var n = parseInt(m[1], 16);
+    var c = [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+    var destino = [60, 43, 18];
+    return '#' + c.map(function (v, i) {
+      var x = Math.round(v + (destino[i] - v) * 0.55);
+      return (x < 16 ? '0' : '') + x.toString(16);
+    }).join('');
+  }
   renderVals() {
-    return { acento: this.props.acento ?? '#B9986B' };
+    var acento = this.props.acento ?? '#B9986B';
+    return { acento: acento, acentoTexto: this.oscurecer(acento) };
   }
 }
 </script>
