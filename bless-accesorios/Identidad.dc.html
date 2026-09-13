@@ -1,0 +1,234 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Italiana&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    body { margin: 0; background: #FDFAF8; -webkit-font-smoothing: antialiased; }
+    .d { font-family: 'Italiana', 'Didot', 'Bodoni MT', 'Times New Roman', serif; font-weight: 400; }
+    .s { font-family: 'Cormorant Garamond', 'Garamond', 'Times New Roman', serif; }
+    .n { font-family: 'Jost', 'Futura', 'Century Gothic', 'Trebuchet MS', sans-serif; }
+    .lbl { font-family: 'Jost', 'Futura', 'Century Gothic', sans-serif; font-size: 11px; letter-spacing: 0.24em; text-transform: uppercase; }
+    .cap { font-family: 'Jost', 'Futura', 'Century Gothic', sans-serif; font-size: 13px; letter-spacing: 0.03em; color: #3C2B12; }
+    .note { font-family: 'Cormorant Garamond', 'Garamond', serif; font-size: 15.5px; line-height: 1.45; color: #6E6058; font-weight: 300; }
+    .hex { font-family: 'Jost', 'Futura', 'Century Gothic', sans-serif; font-size: 11.5px; letter-spacing: 0.09em; color: #8A7A70; }
+    a { color: #5A4318; text-decoration: none; }
+    a:hover { color: #3C2B12; }
+    img { display: block; }
+  </style>
+</helmet>
+
+<div style="width: 1180px; background: #FDFAF8; color: #3C2B12; padding: 72px 72px 76px; box-sizing: border-box;">
+
+  <!-- Encabezado -->
+  <div style="display: flex; align-items: flex-end; justify-content: space-between; gap: 60px; padding-bottom: 56px;">
+    <div style="display: flex; flex-direction: column; gap: 14px;">
+      <div class="lbl" style="color: #B9986B;">Identidad de marca</div>
+      <h1 class="d" style="margin: 0; font-size: 64px; line-height: 1; color: #3C2B12;">Bless Accesorios</h1>
+    </div>
+    <p class="s" style="margin: 0 0 8px; font-size: 19px; line-height: 1.6; color: #6E6058; max-width: 400px; font-weight: 300;">La base visual de la marca: qué versión del logo usar en cada fondo, los colores que la sostienen y las tres tipografías.</p>
+  </div>
+
+  <!-- El logotipo -->
+  <div style="padding-top: 34px; border-top: 1px solid rgba(90,67,24,0.18);">
+    <div class="lbl" style="color: #8A7A70; padding-bottom: 26px;">El logotipo · versiones y contrastes</div>
+    <div style="display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 18px;">
+
+      <div style="display: flex; flex-direction: column; gap: 13px;">
+        <img src="logo-nude.jpg" alt="Logo principal sobre nude" style="width: 100%; aspect-ratio: 1 / 1; border: 1px solid rgba(90,67,24,0.14); border-radius: 3px;">
+        <div class="cap">Principal</div>
+        <div class="note">Sobre nude <span class="hex">#E9E1DF</span>. Es el fondo con el que nació el logo.</div>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 13px;">
+        <img src="logo-marfil.jpg" alt="Logo sobre marfil" style="width: 100%; aspect-ratio: 1 / 1; border: 1px solid rgba(90,67,24,0.14); border-radius: 3px;">
+        <div class="cap">Marfil</div>
+        <div class="note">Más contraste, para secciones con mucho texto <span class="hex">#F7F2EE</span>.</div>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 13px;">
+        <img src="logo-inversa.jpg" alt="Logo inverso sobre chocolate" style="width: 100%; aspect-ratio: 1 / 1; border-radius: 3px;">
+        <div class="cap">Inversa</div>
+        <div class="note">Estrella y nombre en crema. El monograma tiene relieve, así que necesita fondo claro: sobre oscuro va solo el nombre.</div>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 13px;">
+        <img src="monograma-nude.jpg" alt="Monograma sobre nude" style="width: 100%; aspect-ratio: 1 / 1; border: 1px solid rgba(90,67,24,0.14); border-radius: 3px;">
+        <div class="cap">Monograma</div>
+        <div class="note">Foto de perfil, sellos, etiquetas y empaque.</div>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 13px;">
+        <img src="monograma-marfil.jpg" alt="Monograma sobre marfil" style="width: 100%; aspect-ratio: 1 / 1; border: 1px solid rgba(90,67,24,0.14); border-radius: 3px;">
+        <div class="cap">Monograma marfil</div>
+        <div class="note">Cuando el monograma va sobre blanco o marfil.</div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- La paleta -->
+  <div style="padding-top: 34px; margin-top: 56px; border-top: 1px solid rgba(90,67,24,0.18);">
+    <div class="lbl" style="color: #8A7A70; padding-bottom: 26px;">La paleta</div>
+    <div style="display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 14px;">
+
+      <div style="display: flex; flex-direction: column; gap: 12px;">
+        <div style="height: 136px; background: #E9E1DF; border: 1px solid rgba(90,67,24,0.12); border-radius: 3px;"></div>
+        <div class="cap">Nude Bless</div>
+        <div class="hex">#E9E1DF</div>
+        <div class="note">Fondo principal</div>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 12px;">
+        <div style="height: 136px; background: #EFE7E2; border: 1px solid rgba(90,67,24,0.12); border-radius: 3px;"></div>
+        <div class="cap">Arena</div>
+        <div class="hex">#EFE7E2</div>
+        <div class="note">Tarjetas y bloques</div>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 12px;">
+        <div style="height: 136px; background: #F7F2EE; border: 1px solid rgba(90,67,24,0.12); border-radius: 3px;"></div>
+        <div class="cap">Marfil</div>
+        <div class="hex">#F7F2EE</div>
+        <div class="note">Fondo de lectura</div>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 12px;">
+        <div style="height: 136px; background: #E4D5CF; border: 1px solid rgba(90,67,24,0.12); border-radius: 3px;"></div>
+        <div class="cap">Rosa humo</div>
+        <div class="hex">#E4D5CF</div>
+        <div class="note">Acento suave</div>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 12px;">
+        <div style="height: 136px; background: #B9986B; border-radius: 3px;"></div>
+        <div class="cap">Oro suave</div>
+        <div class="hex">#B9986B</div>
+        <div class="note">Líneas y detalles</div>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 12px;">
+        <div style="height: 136px; background: #6E6058; border-radius: 3px;"></div>
+        <div class="cap">Taupe</div>
+        <div class="hex">#6E6058</div>
+        <div class="note">Texto secundario</div>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 12px;">
+        <div style="height: 136px; background: #5A4318; border-radius: 3px;"></div>
+        <div class="cap">Chocolate</div>
+        <div class="hex">#5A4318</div>
+        <div class="note">Texto y botones</div>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 12px;">
+        <div style="height: 136px; background: #3C2B12; border-radius: 3px;"></div>
+        <div class="cap">Espresso</div>
+        <div class="hex">#3C2B12</div>
+        <div class="note">Títulos y fondos oscuros</div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Contrastes -->
+  <div style="padding-top: 34px; margin-top: 56px; border-top: 1px solid rgba(90,67,24,0.18);">
+    <div class="lbl" style="color: #8A7A70; padding-bottom: 26px;">Combinaciones de texto</div>
+    <div style="display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 16px;">
+
+      <div style="display: flex; flex-direction: column; justify-content: space-between; height: 158px; padding: 20px; background: #F7F2EE; border: 1px solid rgba(90,67,24,0.12); border-radius: 3px;">
+        <div class="d" style="font-size: 48px; line-height: 1; color: #3C2B12;">Aa</div>
+        <div style="display: flex; flex-direction: column; gap: 5px;">
+          <div class="note" style="color: #3C2B12;">Espresso sobre marfil</div>
+          <div class="hex" style="color: #6E6058;">12.2 : 1 · AAA</div>
+        </div>
+      </div>
+
+      <div style="display: flex; flex-direction: column; justify-content: space-between; height: 158px; padding: 20px; background: #E9E1DF; border-radius: 3px;">
+        <div class="d" style="font-size: 48px; line-height: 1; color: #5A4318;">Aa</div>
+        <div style="display: flex; flex-direction: column; gap: 5px;">
+          <div class="note" style="color: #5A4318;">Chocolate sobre nude</div>
+          <div class="hex" style="color: #6E6058;">7.2 : 1 · AAA</div>
+        </div>
+      </div>
+
+      <div style="display: flex; flex-direction: column; justify-content: space-between; height: 158px; padding: 20px; background: #3C2B12; border-radius: 3px;">
+        <div class="d" style="font-size: 48px; line-height: 1; color: #F4EADB;">Aa</div>
+        <div style="display: flex; flex-direction: column; gap: 5px;">
+          <div class="note" style="color: #F4EADB;">Crema sobre espresso</div>
+          <div class="hex" style="color: rgba(244,234,219,0.66);">11.4 : 1 · AAA</div>
+        </div>
+      </div>
+
+      <div style="display: flex; flex-direction: column; justify-content: space-between; height: 158px; padding: 20px; background: #3C2B12; border-radius: 3px;">
+        <div class="d" style="font-size: 48px; line-height: 1; color: #B9986B;">Aa</div>
+        <div style="display: flex; flex-direction: column; gap: 5px;">
+          <div class="note" style="color: #B9986B;">Oro sobre espresso</div>
+          <div class="hex" style="color: rgba(244,234,219,0.66);">5.0 : 1 · AA</div>
+        </div>
+      </div>
+
+      <div style="display: flex; flex-direction: column; justify-content: space-between; height: 158px; padding: 20px; background: #F7F2EE; border: 1px dashed rgba(185,152,107,0.7); border-radius: 3px;">
+        <div class="d" style="font-size: 48px; line-height: 1; color: #B9986B;">Aa</div>
+        <div style="display: flex; flex-direction: column; gap: 5px;">
+          <div class="note" style="color: #9A7B4F;">Oro sobre marfil — evítalo</div>
+          <div class="hex" style="color: #9A7B4F;">2.4 : 1 · solo líneas</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Tipografías -->
+  <div style="padding-top: 34px; margin-top: 56px; border-top: 1px solid rgba(90,67,24,0.18);">
+    <div class="lbl" style="color: #8A7A70; padding-bottom: 12px;">Las tipografías</div>
+
+    <div style="display: grid; grid-template-columns: 250px minmax(0, 1fr); gap: 44px; align-items: center; padding: 32px 0; border-bottom: 1px solid rgba(90,67,24,0.14);">
+      <div style="display: flex; flex-direction: column; gap: 8px;">
+        <div class="d" style="font-size: 40px; line-height: 1; color: #3C2B12;">Italiana</div>
+        <div class="lbl" style="color: #B9986B;">Títulos</div>
+        <div class="note">Una sola variante. Para nombres de sección y frases cortas, nunca para párrafos largos.</div>
+      </div>
+      <div style="display: flex; align-items: baseline; gap: 40px;">
+        <div class="d" style="font-size: 88px; line-height: 1; color: #5A4318;">Aa</div>
+        <div class="d" style="font-size: 34px; line-height: 1.25; color: #3C2B12;">Detalles pequeños que se quedan contigo</div>
+      </div>
+    </div>
+
+    <div style="display: grid; grid-template-columns: 250px minmax(0, 1fr); gap: 44px; align-items: center; padding: 32px 0; border-bottom: 1px solid rgba(90,67,24,0.14);">
+      <div style="display: flex; flex-direction: column; gap: 8px;">
+        <div class="s" style="font-size: 38px; line-height: 1; color: #3C2B12;">Cormorant Garamond</div>
+        <div class="lbl" style="color: #B9986B;">Textos</div>
+        <div class="note">Light y Regular, con o sin cursiva. Para descripciones, cuidados y todo lo que se lee de corrido.</div>
+      </div>
+      <div style="display: flex; align-items: baseline; gap: 40px;">
+        <div class="s" style="font-size: 84px; line-height: 1; color: #5A4318; font-weight: 300;">Aa</div>
+        <div class="s" style="font-size: 22px; line-height: 1.6; color: #6E6058; font-weight: 300;">Piezas elegidas una por una para usarse todos los días.<br><span style="font-style: italic;">Las que te pones sin pensar.</span></div>
+      </div>
+    </div>
+
+    <div style="display: grid; grid-template-columns: 250px minmax(0, 1fr); gap: 44px; align-items: center; padding: 32px 0;">
+      <div style="display: flex; flex-direction: column; gap: 8px;">
+        <div class="n" style="font-size: 32px; line-height: 1; color: #3C2B12; font-weight: 300;">Jost</div>
+        <div class="lbl" style="color: #B9986B;">Etiquetas y botones</div>
+        <div class="note">Siempre en mayúsculas y con letras separadas, como el «ACCESORIOS» del logo.</div>
+      </div>
+      <div style="display: flex; align-items: baseline; gap: 40px;">
+        <div class="n" style="font-size: 76px; line-height: 1; color: #5A4318; font-weight: 300;">Aa</div>
+        <div style="display: flex; flex-direction: column; gap: 14px;">
+          <div class="n" style="font-size: 13px; letter-spacing: 0.24em; text-transform: uppercase; color: #3C2B12;">Anillos · Pulseras · Collares</div>
+          <div class="n" style="display: inline-flex; align-self: flex-start; align-items: center; height: 46px; padding: 0 28px; background: #5A4318; color: #F7F2EE; font-size: 12px; letter-spacing: 0.16em; text-transform: uppercase; border-radius: 999px;">Ver la colección</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="note" style="padding-top: 18px;">Las tres están en Google Fonts, así que se pueden usar gratis en la página, en Canva y en el celular.</div>
+  </div>
+
+</div>
+</x-dc>
+<script data-dc-script data-props='{"$preview":{"width":1180,"height":2300}}'>
+class Component extends DCLogic {}
+</script>
+</body>
+</html>

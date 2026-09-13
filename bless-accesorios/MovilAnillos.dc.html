@@ -1,0 +1,128 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Italiana&family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    body { margin: 0; background: #F7F2EE; -webkit-font-smoothing: antialiased; }
+    .d { font-family: 'Italiana', 'Didot', 'Bodoni MT', 'Times New Roman', serif; font-weight: 400; }
+    .s { font-family: 'Cormorant Garamond', 'Garamond', 'Times New Roman', serif; }
+    .n { font-family: 'Jost', 'Futura', 'Century Gothic', 'Trebuchet MS', sans-serif; }
+    .lbl { font-family: 'Jost', 'Futura', 'Century Gothic', sans-serif; font-size: 9.5px; letter-spacing: 0.22em; text-transform: uppercase; }
+    a { color: #5A4318; text-decoration: none; }
+    a:hover { color: #3C2B12; }
+    svg { display: block; }
+  </style>
+</helmet>
+
+<div style="position: relative; width: 390px; height: 844px; overflow: hidden; background: #F7F2EE; color: #3C2B12;">
+
+  <div style="display: flex; flex-direction: column;">
+
+    <!-- Barra superior -->
+    <div style="display: flex; align-items: center; justify-content: space-between; height: 56px; padding: 0 20px; background: #F7F2EE; border-bottom: 1px solid rgba(90,67,24,0.12);">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#5A4318" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M14.5 5.5 8 12l6.5 6.5"></path>
+      </svg>
+      <div class="d" style="font-size: 21px; line-height: 1; color: #3C2B12;">Anillos</div>
+      <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="#5A4318" stroke-width="1.3" stroke-linecap="round">
+        <circle cx="11" cy="11" r="6.5"></circle><path d="m16 16 4 4"></path>
+      </svg>
+    </div>
+
+    <!-- Intro -->
+    <div style="display: flex; flex-direction: column; gap: 10px; padding: 26px 20px 20px; background: #E9E1DF;">
+      <p class="s" style="margin: 0; font-size: 17px; line-height: 1.55; color: #6E6058; font-weight: 300;">Delgados para apilar, con piedra para los días que quieres que se note, y de sello para siempre.</p>
+      <div style="display: flex; gap: 9px; padding-top: 6px;">
+        <div class="n" style="height: 44px; line-height: 44px; padding: 0 18px; border-radius: 999px; background: #5A4318; color: #F7F2EE; font-size: 12.5px; white-space: nowrap;">Todos</div>
+        <div class="n" style="height: 44px; line-height: 44px; padding: 0 18px; border-radius: 999px; border: 1px solid rgba(90,67,24,0.25); color: #5A4318; font-size: 12.5px; white-space: nowrap;">Para apilar</div>
+        <div class="n" style="height: 44px; line-height: 44px; padding: 0 18px; border-radius: 999px; border: 1px solid rgba(90,67,24,0.25); color: #5A4318; font-size: 12.5px; white-space: nowrap;">Con piedra</div>
+      </div>
+    </div>
+
+    <!-- Rejilla de piezas -->
+    <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; padding: 22px 20px 0;">
+
+      <div style="display: flex; flex-direction: column; gap: 10px;">
+        <div style="display: flex; align-items: center; justify-content: center; aspect-ratio: 1 / 1; background: #E9E1DF; border-radius: 3px;">
+          <svg width="110" height="110" viewBox="0 0 120 120" fill="none" stroke="#5A4318" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round">
+            <ellipse cx="60" cy="74" rx="25" ry="29"></ellipse>
+            <ellipse cx="60" cy="74" rx="19" ry="23"></ellipse>
+            <path d="M60 27 L72 40 L60 53 L48 40 Z"></path>
+            <path d="M48 40 H72"></path>
+            <path d="M53.5 34.5 L60 40 L66.5 34.5"></path>
+          </svg>
+        </div>
+        <div class="d" style="font-size: 17px; color: #3C2B12;">Anillo con piedra</div>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 10px;">
+        <div style="display: flex; align-items: center; justify-content: center; aspect-ratio: 1 / 1; background: #EFE7E2; border-radius: 3px;">
+          <svg width="110" height="110" viewBox="0 0 120 120" fill="none" stroke="#5A4318" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round">
+            <ellipse cx="42" cy="62" rx="15" ry="27"></ellipse>
+            <ellipse cx="60" cy="62" rx="15" ry="27"></ellipse>
+            <ellipse cx="78" cy="62" rx="15" ry="27"></ellipse>
+            <circle cx="60" cy="34" r="5" fill="#FBF7F4"></circle>
+          </svg>
+        </div>
+        <div class="d" style="font-size: 17px; color: #3C2B12;">Set de tres</div>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 10px;">
+        <div style="display: flex; align-items: center; justify-content: center; aspect-ratio: 1 / 1; background: #E4D5CF; border-radius: 3px;">
+          <svg width="110" height="110" viewBox="0 0 120 120" fill="none" stroke="#5A4318" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round">
+            <ellipse cx="60" cy="76" rx="24" ry="27"></ellipse>
+            <ellipse cx="60" cy="76" rx="18" ry="21"></ellipse>
+            <ellipse cx="60" cy="44" rx="16" ry="12"></ellipse>
+            <ellipse cx="60" cy="44" rx="10.5" ry="7.4"></ellipse>
+          </svg>
+        </div>
+        <div class="d" style="font-size: 17px; color: #3C2B12;">Anillo sello</div>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 10px;">
+        <div style="display: flex; align-items: center; justify-content: center; aspect-ratio: 1 / 1; background: #E9E1DF; border-radius: 3px;">
+          <svg width="110" height="110" viewBox="0 0 120 120" fill="none" stroke="#5A4318" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round">
+            <ellipse cx="60" cy="62" rx="26" ry="31"></ellipse>
+            <ellipse cx="60" cy="62" rx="22" ry="26.5"></ellipse>
+            <path d="M60 31 C64 33.5 64 35.5 60 38" stroke="{{acento}}"></path>
+          </svg>
+        </div>
+        <div class="d" style="font-size: 17px; color: #3C2B12;">Anillo delgado</div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Barra inferior fija -->
+  <div style="position: absolute; left: 0; right: 0; bottom: 0; display: flex; align-items: center; gap: 12px; padding: 14px 20px 22px; background: rgba(247,242,238,0.94); border-top: 1px solid rgba(90,67,24,0.12); backdrop-filter: blur(8px);">
+    <div style="display: flex; flex-direction: column; gap: 2px; flex-grow: 1;">
+      <div class="lbl" style="color: #8A7A70;">¿Te gustó alguno?</div>
+      <div class="s" style="font-size: 16px; color: #3C2B12;">Te paso fotos y medidas</div>
+    </div>
+    <a href="#" class="n" style="display: flex; align-items: center; justify-content: center; gap: 9px; height: 50px; padding: 0 22px; background: #5A4318; color: #F7F2EE; font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase; border-radius: 999px; white-space: nowrap;">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#F7F2EE" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M20.5 11.6a8.5 8.5 0 0 1-12.4 7.5L3.5 20.5l1.4-4.5a8.5 8.5 0 1 1 15.6-4.4Z"></path>
+      </svg>
+      Escribir
+    </a>
+  </div>
+
+</div>
+</x-dc>
+<script data-dc-script data-props='{"acento":{"editor":"color","default":"#B9986B","options":["#B9986B","#5A4318","#C29A8E","#8A7A70"],"section":"Marca"},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return { acento: this.props.acento ?? '#B9986B' };
+  }
+}
+</script>
+</body>
+</html>
