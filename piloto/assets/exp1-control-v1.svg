@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="846" height="250" viewBox="0 0 846 250">
+<style>
+.sg{font-family:'NoExisteSG',sans-serif;font-weight:600}
+.in{font-family:'NoExisteInter',sans-serif;font-weight:400}
+.mo{font-family:'NoExisteMono',monospace;font-weight:700}
+</style>
+<defs><pattern id="r" width="48" height="48" patternUnits="userSpaceOnUse"><path d="M48 0H0V48" fill="none" stroke="rgba(243,241,234,.04)" stroke-width="2"/></pattern></defs>
+<rect width="846" height="250" fill="#0a0a0a"/><rect width="846" height="250" fill="url(#r)"/>
+<text x="38" y="52" class="sg" font-size="16" fill="#f3f1ea">Marco Sebastián Ortega Molina</text>
+<text x="38" y="78" class="mo" font-size="10.5" letter-spacing="1.68" fill="#ff2020">FULL-STACK DEVELOPER · AI TRAINER</text>
+<text x="38" y="130" class="sg" font-size="44" letter-spacing="-1.32" fill="#f3f1ea">I build <tspan fill="#8d8d85">software.</tspan></text>
+<text x="38" y="176" class="sg" font-size="44" letter-spacing="-1.32" fill="#f3f1ea">I train <tspan fill="#ff2020">AI.</tspan></text>
+<text x="38" y="218" class="in" font-size="14.5" fill="#cfcdc4">I build <tspan font-weight="600" fill="#f3f1ea">web and mobile applications</tspan> with integrated artificial intelligence.</text>
+</svg>

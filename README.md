@@ -1,130 +1,56 @@
-<div align="center">
+# Piloto técnico de la cabecera del perfil
 
-[![Typing SVG](https://readme-typing-svg.demolab.com?font=Fira+Code&weight=800&size=26&duration=2000&pause=300&color=58A6FF&center=true&vCenter=true&multiline=true&repeat=true&width=800&height=160&lines=%F0%9F%91%8B+Hola%2C+soy+Marco+Ortega;Full+Stack+Developer+%7C+Mobile+%26+Web;And+AI+Enthusiast)](https://git.io/typing-svg)
+Rama de prueba. No es el perfil: aquí se mide si GitHub pinta lo que necesita el README nuevo.
+Las medidas y la conclusión están en [piloto/INFORME.md](piloto/INFORME.md).
 
+## Experimento 1: fuentes embebidas
 
+Space Grotesk 600, Space Mono 700 e Inter 400 dentro del SVG, en base64.
 
-</div>
+<img alt="exp1-fuentes" width="100%" src="piloto/assets/exp1-fuentes-v1.svg">
 
----
+Control: el mismo SVG pidiendo fuentes que no existen. Tiene que verse distinto.
 
-## About Me
+<img alt="exp1-control" width="100%" src="piloto/assets/exp1-control-v1.svg">
 
-```yaml
-name: Marco Sebastián Ortega Molina
-location: Hermosillo, Sonora, México
-education: Ingeniería en Sistemas Computacionales @ UNISON (5° Semestre)
-focus: Full Stack Web & Mobile Development
-interests: AI Integration, Automation, 3D Web Experiences
-```
+## Experimento 2: pestañas como imágenes pegadas
 
-- Learning **AI/ML integration** and **3D web animations**
-- Passionate about creating **real-world solutions** with modern tech
-- 2026 Goal: Build a strong portfolio & contribute to open source
+Seis pestañas, cada una con su enlace, y debajo el cuerpo de la ventana. Los enlaces son provisionales.
 
----
+### 2a. En línea, sin espacios entre etiquetas
 
-## Tech Stack
+<p><a href="https://www.kairomx.tech/cv/#home"><img alt="exp2a-t1" width="13.9480%" src="piloto/assets/exp2-pestana1-v1.svg"></a><a href="https://www.kairomx.tech/cv/#projects"><img alt="exp2a-t2" width="17.4941%" src="piloto/assets/exp2-pestana2-v1.svg"></a><a href="https://www.kairomx.tech/cv/#stack"><img alt="exp2a-t3" width="14.1844%" src="piloto/assets/exp2-pestana3-v1.svg"></a><a href="https://www.kairomx.tech/cv/#experience"><img alt="exp2a-t4" width="20.0946%" src="piloto/assets/exp2-pestana4-v1.svg"></a><a href="https://www.kairomx.tech/cv/#about"><img alt="exp2a-t5" width="15.1300%" src="piloto/assets/exp2-pestana5-v1.svg"></a><a href="https://www.kairomx.tech/cv/#contact"><img alt="exp2a-t6" width="19.1489%" src="piloto/assets/exp2-pestana6-v1.svg"></a><br><img alt="exp2a-cuerpo" width="100%" src="piloto/assets/exp2-cuerpo-v1.svg"></p>
 
-<div align="center">
+### 2b. Con align="left"
 
-### Languages I've Optimized Using AI
-![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white)
-![JavaScript](https://img.shields.io/badge/JavaScript-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black)
-![Python](https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white)
-![Java](https://img.shields.io/badge/Java-ED8B00?style=for-the-badge&logo=openjdk&logoColor=white)
-![SQL](https://img.shields.io/badge/SQL-4479A1?style=for-the-badge&logo=postgresql&logoColor=white)
-![HTML5](https://img.shields.io/badge/HTML5-E34F26?style=for-the-badge&logo=html5&logoColor=white)
-![CSS3](https://img.shields.io/badge/CSS3-1572B6?style=for-the-badge&logo=css3&logoColor=white)
+<p><a href="https://www.kairomx.tech/cv/#home"><img alt="exp2b-t1" width="13.9480%" align="left" src="piloto/assets/exp2-pestana1-v1.svg"></a><a href="https://www.kairomx.tech/cv/#projects"><img alt="exp2b-t2" width="17.4941%" align="left" src="piloto/assets/exp2-pestana2-v1.svg"></a><a href="https://www.kairomx.tech/cv/#stack"><img alt="exp2b-t3" width="14.1844%" align="left" src="piloto/assets/exp2-pestana3-v1.svg"></a><a href="https://www.kairomx.tech/cv/#experience"><img alt="exp2b-t4" width="20.0946%" align="left" src="piloto/assets/exp2-pestana4-v1.svg"></a><a href="https://www.kairomx.tech/cv/#about"><img alt="exp2b-t5" width="15.1300%" align="left" src="piloto/assets/exp2-pestana5-v1.svg"></a><a href="https://www.kairomx.tech/cv/#contact"><img alt="exp2b-t6" width="19.1489%" align="left" src="piloto/assets/exp2-pestana6-v1.svg"></a><img alt="exp2b-cuerpo" width="100%" src="piloto/assets/exp2-cuerpo-v1.svg"></p>
 
-### Languages I have used and learned throughout my career so far
-![HTML5](https://img.shields.io/badge/HTML5-E34F26?style=for-the-badge&logo=html5&logoColor=white)
-![Python](https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white)
-![Java](https://img.shields.io/badge/Java-ED8B00?style=for-the-badge&logo=openjdk&logoColor=white)
-![SQL](https://img.shields.io/badge/SQL-4479A1?style=for-the-badge&logo=postgresql&logoColor=white)
+### 2c. En una tabla
 
-### Frameworks & Libraries
-![Next.js](https://img.shields.io/badge/Next.js-000000?style=for-the-badge&logo=next.js&logoColor=white)
-![React](https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)
-![React Native](https://img.shields.io/badge/React_Native-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)
-![Expo](https://img.shields.io/badge/Expo-000020?style=for-the-badge&logo=expo&logoColor=white)
-![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white)
-![Framer Motion](https://img.shields.io/badge/Framer_Motion-0055FF?style=for-the-badge&logo=framer&logoColor=white)
-![Node.js](https://img.shields.io/badge/Node.js-339933?style=for-the-badge&logo=node.js&logoColor=white)
+<table>
+<tr><td><a href="https://www.kairomx.tech/cv/#home"><img alt="exp2c-t1" src="piloto/assets/exp2-pestana1-v1.svg"></a></td><td><a href="https://www.kairomx.tech/cv/#projects"><img alt="exp2c-t2" src="piloto/assets/exp2-pestana2-v1.svg"></a></td><td><a href="https://www.kairomx.tech/cv/#stack"><img alt="exp2c-t3" src="piloto/assets/exp2-pestana3-v1.svg"></a></td><td><a href="https://www.kairomx.tech/cv/#experience"><img alt="exp2c-t4" src="piloto/assets/exp2-pestana4-v1.svg"></a></td><td><a href="https://www.kairomx.tech/cv/#about"><img alt="exp2c-t5" src="piloto/assets/exp2-pestana5-v1.svg"></a></td><td><a href="https://www.kairomx.tech/cv/#contact"><img alt="exp2c-t6" src="piloto/assets/exp2-pestana6-v1.svg"></a></td></tr>
+<tr><td colspan="6"><img alt="exp2c-cuerpo" width="100%" src="piloto/assets/exp2-cuerpo-v1.svg"></td></tr>
+</table>
 
-### Backend & Cloud
-![Supabase](https://img.shields.io/badge/Supabase-3ECF8E?style=for-the-badge&logo=supabase&logoColor=white)
-![Vercel](https://img.shields.io/badge/Vercel-000000?style=for-the-badge&logo=vercel&logoColor=white)
-![DigitalOcean](https://img.shields.io/badge/DigitalOcean-0080FF?style=for-the-badge&logo=digitalocean&logoColor=white)
+### 2d. En línea, con align="top"
 
-### Tools & Automation
-![n8n](https://img.shields.io/badge/n8n-EA4B71?style=for-the-badge&logo=n8n&logoColor=white)
-![Git](https://img.shields.io/badge/Git-F05032?style=for-the-badge&logo=git&logoColor=white)
-![GitHub](https://img.shields.io/badge/GitHub-181717?style=for-the-badge&logo=github&logoColor=white)
-![Figma](https://img.shields.io/badge/Figma-F24E1E?style=for-the-badge&logo=figma&logoColor=white)
+<p><a href="https://www.kairomx.tech/cv/#home"><img alt="exp2d-t1" width="13.9480%" align="top" src="piloto/assets/exp2-pestana1-v1.svg"></a><a href="https://www.kairomx.tech/cv/#projects"><img alt="exp2d-t2" width="17.4941%" align="top" src="piloto/assets/exp2-pestana2-v1.svg"></a><a href="https://www.kairomx.tech/cv/#stack"><img alt="exp2d-t3" width="14.1844%" align="top" src="piloto/assets/exp2-pestana3-v1.svg"></a><a href="https://www.kairomx.tech/cv/#experience"><img alt="exp2d-t4" width="20.0946%" align="top" src="piloto/assets/exp2-pestana4-v1.svg"></a><a href="https://www.kairomx.tech/cv/#about"><img alt="exp2d-t5" width="15.1300%" align="top" src="piloto/assets/exp2-pestana5-v1.svg"></a><a href="https://www.kairomx.tech/cv/#contact"><img alt="exp2d-t6" width="19.1489%" align="top" src="piloto/assets/exp2-pestana6-v1.svg"></a><br><img alt="exp2d-cuerpo" width="100%" align="top" src="piloto/assets/exp2-cuerpo-v1.svg"></p>
 
-### Features of AI agents I've worked with
+### 2e. En línea, con align="top" y pestañas de 76 de alto (barra de título encima)
 
-![Agent Skills](https://img.shields.io/badge/Agent%20Skills-000000?style=for-the-badge&logo=Agent+Skills&logoColor=FFFFFF)
-![Autonomous Planning](https://img.shields.io/badge/Autonomous_Planning-8A2BE2?style=for-the-badge&logo=google-brain&logoColor=white)  
-![Complex Reasoning](https://img.shields.io/badge/Complex_Reasoning-4B0082?style=for-the-badge&logo=deepmind&logoColor=white)   
-![Self-Correction](https://img.shields.io/badge/Self--Correction-FF4500?style=for-the-badge&logo=debug&logoColor=white)   
+<p><a href="https://www.kairomx.tech/cv/#home"><img alt="exp2e-t1" width="13.9480%" align="top" src="piloto/assets/exp2-alta1-v1.svg"></a><a href="https://www.kairomx.tech/cv/#projects"><img alt="exp2e-t2" width="17.4941%" align="top" src="piloto/assets/exp2-alta2-v1.svg"></a><a href="https://www.kairomx.tech/cv/#stack"><img alt="exp2e-t3" width="14.1844%" align="top" src="piloto/assets/exp2-alta3-v1.svg"></a><a href="https://www.kairomx.tech/cv/#experience"><img alt="exp2e-t4" width="20.0946%" align="top" src="piloto/assets/exp2-alta4-v1.svg"></a><a href="https://www.kairomx.tech/cv/#about"><img alt="exp2e-t5" width="15.1300%" align="top" src="piloto/assets/exp2-alta5-v1.svg"></a><a href="https://www.kairomx.tech/cv/#contact"><img alt="exp2e-t6" width="19.1489%" align="top" src="piloto/assets/exp2-alta6-v1.svg"></a><br><img alt="exp2e-cuerpo" width="100%" align="top" src="piloto/assets/exp2-cuerpo-v1.svg"></p>
 
-### CLI coding agents
+## Experimento 3: tema claro y oscuro
 
-![Opencode](https://img.shields.io/badge/OpenCode-000000?style=for-the-badge&logo=OpenCode&logoColor=FFFFFF)
-![Claude Code](https://img.shields.io/badge/Claude_Code-D97757?style=for-the-badge&logo=anthropic&logoColor=white)   
+<picture>
+<source media="(prefers-color-scheme: dark)" srcset="piloto/assets/exp3-oscuro-v1.svg">
+<img alt="exp3-tema" width="100%" src="piloto/assets/exp3-claro-v1.svg">
+</picture>
 
-</div>
+## Experimento 4: avatar animado
 
----
+Entra armándose con cuadritos, parpadea y mira a los lados. Con «reducir movimiento» se carga la versión quieta.
 
-## GitHub Stats
+<picture><source media="(prefers-reduced-motion: reduce)" srcset="piloto/assets/exp4-avatar-oscuro-quieto-v1.svg"><img alt="exp4-avatar-oscuro" width="400" src="piloto/assets/exp4-avatar-oscuro-v1.svg"></picture>
 
-<div align="center">
-
-<img width="49%" src="https://github-readme-stats.vercel.app/api?username=MarcoSebastianOrtegaMolina&show_icons=true&theme=tokyonight&hide_border=true&bg_color=0D1117&title_color=58A6FF&icon_color=58A6FF&text_color=C9D1D9" />
-<img width="49%" src="https://github-readme-streak-stats.herokuapp.com/?user=MarcoSebastianOrtegaMolina&theme=tokyonight&hide_border=true&background=0D1117&ring=58A6FF&fire=58A6FF&currStreakLabel=58A6FF" />
-
-<img width="40%" src="https://github-readme-stats.vercel.app/api/top-langs/?username=MarcoSebastianOrtegaMolina&layout=compact&theme=tokyonight&hide_border=true&bg_color=0D1117&title_color=58A6FF&text_color=C9D1D9" />
-
-
-
-</div>
-
----
-
-## Featured Projects
-
-<div align="center">
-
-| **MiDosis** | **Cristy Snacks** |
-|:---:|:---:|
-| Mobile health app with AI assistant for medication tracking | Business management system with inventory, sales & finance |
-| `React Native` `Expo` `Supabase` `OpenRouter AI` | `Next.js` `Supabase` `TypeScript` |
-| [![Repo](https://img.shields.io/badge/View_Repo-181717?style=for-the-badge&logo=github)](https://github.com/MarcoSebastianOrtegaMolina/MiDosis) | [![Repo](https://img.shields.io/badge/View_Repo-181717?style=for-the-badge&logo=github)](https://github.com/MarcoSebastianOrtegaMolina/cristy-snacks) |
-
-| **NurseGo** |
-|:---:|
-| Mobile app for nursing professionals — shifts, patients, geolocation |
-| `React Native` `Expo` `Supabase` `Maps` `TypeScript` |
-| [![Repo](https://img.shields.io/badge/View_Repo-181717?style=for-the-badge&logo=github)](https://github.com/MarcoSebastianOrtegaMolina/NurseGo) |
-
-
-## Connect With Me
-
-<div align="center">
-
-[![GitHub](https://img.shields.io/badge/GitHub-MarcoSebastianOrtegaMolina-181717?style=for-the-badge&logo=github)](https://github.com/MarcoSebastianOrtegaMolina)
-[![Email](https://img.shields.io/badge/Email-contactomarcosebastian@gmail.com-D14836?style=for-the-badge&logo=gmail&logoColor=white)](mailto:contactomarcosebastian@gmail.com)
-
-</div>
-
----
-
-<div align="center">
-
-### Random Dev Quote
-![](https://quotes-github-readme.vercel.app/api?type=horizontal&theme=tokyonight)
-
-</div>
+<picture><source media="(prefers-reduced-motion: reduce)" srcset="piloto/assets/exp4-avatar-claro-quieto-v1.svg"><img alt="exp4-avatar-claro" width="400" src="piloto/assets/exp4-avatar-claro-v1.svg"></picture>
