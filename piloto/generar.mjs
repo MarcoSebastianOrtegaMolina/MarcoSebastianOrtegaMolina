@@ -14,6 +14,8 @@ const salida = path.join(aqui, "assets");
 const V = "v1";
 // Lo que cambio o es nuevo en la segunda vuelta lleva v2.
 const V2 = "v2";
+// v3: las pestanas claras de 2f llevaban el color de texto del tema oscuro.
+const V3 = "v3";
 
 // Colores del CV (cv-base.css, tema oscuro y claro).
 const OSC = { bg: "#0a0a0a", bg2: "#121211", bg3: "#1a1a18", fg: "#f3f1ea", fg2: "#cfcdc4", muted: "#8d8d85", red: "#ff2020", ink: "243,241,234" };
@@ -83,7 +85,7 @@ function pestana(i, alto, c = OSC) {
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${alto}" viewBox="0 0 ${w} ${alto}">
 ${titulo}<rect y="${y0}" width="${w}" height="42" fill="${c.bg2}"/>${on ? `<rect x="12" y="${y0}" width="${w - 24}" height="42" fill="${c.bg3}"/><rect x="12" y="${y0 + 40}" width="${w - 24}" height="2" fill="${OSC.red}"/>` : ""}
 <rect y="${alto - 1}" width="${w}" height="1" fill="rgba(${c.ink},.14)"/>
-<text x="${w / 2}" y="${y0 + 26}" text-anchor="middle" font-family="sans-serif" font-size="14" font-weight="${on ? 600 : 500}" fill="${on ? OSC.fg : OSC.fg2}">${esc(txt)}</text>
+<text x="${w / 2}" y="${y0 + 26}" text-anchor="middle" font-family="sans-serif" font-size="14" font-weight="${on ? 600 : 500}" fill="${on ? c.fg : c.fg2}">${esc(txt)}</text>
 </svg>
 `;
 }
@@ -240,8 +242,8 @@ PEST.forEach((_, i) => {
 hechos.push(escribir(`exp2-cuerpo-${V}.svg`, cuerpo()));
 // 2f: pestanas de 84 de alto (barra de titulo y pestana) y cuerpo, en variante oscura y clara.
 for (const [tem, c] of [["oscuro", OSC], ["claro", CLA]]) {
-  PEST.forEach((_, i) => hechos.push(escribir(`exp2-f-${tem}${i + 1}-${V2}.svg`, pestana(i, ALTO_F, c))));
-  hechos.push(escribir(`exp2-f-cuerpo-${tem}-${V2}.svg`, cuerpo(c)));
+  PEST.forEach((_, i) => hechos.push(escribir(`exp2-f-${tem}${i + 1}-${V3}.svg`, pestana(i, ALTO_F, c))));
+  hechos.push(escribir(`exp2-f-cuerpo-${tem}-${V3}.svg`, cuerpo(c)));
 }
 hechos.push(escribir(`exp3-oscuro-${V}.svg`, tema(OSC, "Dark theme image")));
 hechos.push(escribir(`exp3-claro-${V}.svg`, tema(CLA, "Light theme image")));
@@ -256,13 +258,14 @@ for (const tem of ["oscuro", "claro"]) {
 const ENL = ["home", "projects", "stack", "experience", "about", "contact"].map((a) => `https://www.kairomx.tech/cv/#${a}`);
 const A = (n) => `piloto/assets/${n}-${V}.svg`;
 const A2 = (n) => `piloto/assets/${n}-${V2}.svg`;
+const A3 = (n) => `piloto/assets/${n}-${V3}.svg`;
 const OSCURO = "(prefers-color-scheme: dark)";
 const pic = (oscuro, img) => `<picture><source media="${OSCURO}" srcset="${oscuro}">${img}</picture>`;
 const pct = (w) => ((w / ANCHO) * 100).toFixed(4) + "%";
 const fila = (f, alta, extra) => PEST.map(([, w], i) => `<a href="${ENL[i]}"><img alt="exp2${f}-t${i + 1}" width="${pct(w)}"${extra} src="${A(`exp2-${alta ? "alta" : "pestana"}${i + 1}`)}"></a>`).join("");
 const cuerpoImg = (f, extra) => `<img alt="exp2${f}-cuerpo" width="100%"${extra} src="${A("exp2-cuerpo")}">`;
-const filaF = PEST.map(([, w], i) => `<a href="${ENL[i]}">${pic(A2(`exp2-f-oscuro${i + 1}`), `<img alt="exp2f-t${i + 1}" width="${pct(w)}" align="top" src="${A2(`exp2-f-claro${i + 1}`)}">`)}</a>`).join("");
-const cuerpoF = pic(A2("exp2-f-cuerpo-oscuro"), `<img alt="exp2f-cuerpo" width="100%" align="top" src="${A2("exp2-f-cuerpo-claro")}">`);
+const filaF = PEST.map(([, w], i) => `<a href="${ENL[i]}">${pic(A3(`exp2-f-oscuro${i + 1}`), `<img alt="exp2f-t${i + 1}" width="${pct(w)}" align="top" src="${A3(`exp2-f-claro${i + 1}`)}">`)}</a>`).join("");
+const cuerpoF = pic(A3("exp2-f-cuerpo-oscuro"), `<img alt="exp2f-cuerpo" width="100%" align="top" src="${A3("exp2-f-cuerpo-claro")}">`);
 const readme = `# Piloto técnico de la cabecera del perfil
 
 Rama de prueba. No es el perfil: aquí se mide si GitHub pinta lo que necesita el README nuevo.
