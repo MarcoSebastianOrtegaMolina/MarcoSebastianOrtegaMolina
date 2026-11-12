@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="120" height="84" viewBox="0 0 120 84">
+<rect width="120" height="42" fill="#1a1a18"/><rect width="120" height="2" fill="#ff2020"/><rect y="41" width="120" height="1" fill="rgba(243,241,234,.14)"/><rect y="42" width="120" height="42" fill="#121211"/>
+<rect y="83" width="120" height="1" fill="rgba(243,241,234,.14)"/>
+<text x="60" y="68" text-anchor="middle" font-family="sans-serif" font-size="14" font-weight="500" fill="#cfcdc4">Stack</text>
+</svg>

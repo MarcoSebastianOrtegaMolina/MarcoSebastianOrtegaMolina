@@ -12,6 +12,8 @@ const salida = path.join(aqui, "assets");
 
 // Version de los nombres: GitHub guarda las imagenes en cache; si cambia un SVG, se sube la version.
 const V = "v1";
+// Lo que cambio o es nuevo en la segunda vuelta lleva v2.
+const V2 = "v2";
 
 // Colores del CV (cv-base.css, tema oscuro y claro).
 const OSC = { bg: "#0a0a0a", bg2: "#121211", bg3: "#1a1a18", fg: "#f3f1ea", fg2: "#cfcdc4", muted: "#8d8d85", red: "#ff2020", ink: "243,241,234" };
@@ -36,13 +38,15 @@ const T = {
 };
 
 // ---------- Experimento 1: fuentes embebidas y su control ----------
-function textoHero(f, conFuentes) {
-  // f: familias a pedir. En el control se piden familias que no existen y no hay @font-face.
-  const css = conFuentes
-    ? `@font-face{font-family:'PilotoSG';src:url(data:font/woff2;base64,${b64("space-grotesk-latin-var.woff2")}) format('woff2');font-weight:300 700}
-@font-face{font-family:'PilotoInter';src:url(data:font/woff2;base64,${b64("inter-latin-var.woff2")}) format('woff2');font-weight:100 900}
-@font-face{font-family:'PilotoMono';src:url(data:font/woff2;base64,${b64("space-mono-700-latin.woff2")}) format('woff2');font-weight:700}`
-    : "";
+const CARAS = {
+  sg: () => `@font-face{font-family:'PilotoSG';src:url(data:font/woff2;base64,${b64("space-grotesk-latin-var.woff2")}) format('woff2');font-weight:300 700}`,
+  inter: () => `@font-face{font-family:'PilotoInter';src:url(data:font/woff2;base64,${b64("inter-latin-var.woff2")}) format('woff2');font-weight:100 900}`,
+  mono: () => `@font-face{font-family:'PilotoMono';src:url(data:font/woff2;base64,${b64("space-mono-700-latin.woff2")}) format('woff2');font-weight:700}`,
+};
+function textoHero(f, caras) {
+  // f: familias a pedir; caras: que @font-face van dentro. El control general pide familias que no
+  // existen y no lleva ninguna; cada control por fuente quita solo la de esa fuente.
+  const css = caras.map((k) => CARAS[k]()).join("\n");
   return `<svg xmlns="http://www.w3.org/2000/svg" width="846" height="250" viewBox="0 0 846 250">
 <style>${css}
 .sg{font-family:'${f.sg}',sans-serif;font-weight:600}
@@ -63,28 +67,31 @@ function textoHero(f, conFuentes) {
 // ---------- Experimento 2: pestanas y cuerpo ----------
 const PEST = [["Home", 118], ["Projects", 148], ["Stack", 120], ["Experience", 170], ["About", 128], ["Contact", 162]];
 const ANCHO = PEST.reduce((s, [, w]) => s + w, 0); // 846
-function pestana(i, alto) {
+// Alto de la fila de 2f: la linea de texto de GitHub mide 24 px y a 320 px de pantalla el cuerpo mide
+// 254 px; la fila tiene que medir al menos 24/254 de 846 = 80 unidades. Con 84 queda en 25,2 px.
+const ALTO_F = 84;
+function pestana(i, alto, c = OSC) {
   const [txt, w] = PEST[i];
   const on = i === 0;
-  const barra = alto > 42; // variante alta: barra de titulo encima de la pestana
+  const barra = alto > 42; // variantes altas: barra de titulo encima de la pestana
   const y0 = barra ? alto - 42 : 0;
   const titulo = barra
-    ? `<rect width="${w}" height="${y0}" fill="${OSC.bg3}"/><rect width="${w}" height="2" fill="${OSC.red}"/>` +
-      (i === 0 ? `<rect x="14" y="12" width="10" height="10" fill="${OSC.red}"/><text x="34" y="22" font-family="monospace" font-weight="700" font-size="12" fill="${OSC.fg}">MSO · PORTFOLIO<tspan fill="${OSC.red}">.EXE</tspan></text>` : "") +
-      `<rect y="${y0 - 1}" width="${w}" height="1" fill="rgba(${OSC.ink},.14)"/>`
+    ? `<rect width="${w}" height="${y0}" fill="${c.bg3}"/><rect width="${w}" height="2" fill="${OSC.red}"/>` +
+      (i === 0 ? `<rect x="14" y="12" width="10" height="10" fill="${OSC.red}"/><text x="34" y="22" font-family="monospace" font-weight="700" font-size="12" fill="${c.fg}">MSO · PORTFOLIO<tspan fill="${OSC.red}">.EXE</tspan></text>` : "") +
+      `<rect y="${y0 - 1}" width="${w}" height="1" fill="rgba(${c.ink},.14)"/>`
     : "";
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${alto}" viewBox="0 0 ${w} ${alto}">
-${titulo}<rect y="${y0}" width="${w}" height="42" fill="${OSC.bg2}"/>${on ? `<rect x="12" y="${y0}" width="${w - 24}" height="42" fill="${OSC.bg3}"/><rect x="12" y="${y0 + 40}" width="${w - 24}" height="2" fill="${OSC.red}"/>` : ""}
-<rect y="${alto - 1}" width="${w}" height="1" fill="rgba(${OSC.ink},.14)"/>
+${titulo}<rect y="${y0}" width="${w}" height="42" fill="${c.bg2}"/>${on ? `<rect x="12" y="${y0}" width="${w - 24}" height="42" fill="${c.bg3}"/><rect x="12" y="${y0 + 40}" width="${w - 24}" height="2" fill="${OSC.red}"/>` : ""}
+<rect y="${alto - 1}" width="${w}" height="1" fill="rgba(${c.ink},.14)"/>
 <text x="${w / 2}" y="${y0 + 26}" text-anchor="middle" font-family="sans-serif" font-size="14" font-weight="${on ? 600 : 500}" fill="${on ? OSC.fg : OSC.fg2}">${esc(txt)}</text>
 </svg>
 `;
 }
-function cuerpo() {
+function cuerpo(c = OSC) {
   return `<svg xmlns="http://www.w3.org/2000/svg" width="846" height="160" viewBox="0 0 846 160">
-<defs>${rejilla("r", OSC.ink)}</defs>
-<rect width="846" height="160" fill="${OSC.bg}"/><rect width="846" height="160" fill="url(#r)"/>
-<text x="38" y="88" font-family="sans-serif" font-size="22" font-weight="600" fill="${OSC.fg}">Body of the window <tspan fill="${OSC.muted}">(one image)</tspan></text>
+<defs>${rejilla("r", c.ink)}</defs>
+<rect width="846" height="160" fill="${c.bg}"/><rect width="846" height="160" fill="url(#r)"/>
+<text x="38" y="88" font-family="sans-serif" font-size="22" font-weight="600" fill="${c.fg}">Body of the window <tspan fill="${c.muted}">(one image)</tspan></text>
 </svg>
 `;
 }
@@ -113,9 +120,9 @@ function avatarAnimado(tem) {
     .replace(/var\(--avatar-relleno,#ff2020\)/g, col.relleno)
     .replace(/var\(--avatar-trazo,#0b0b0b\)/g, col.trazo)
     .replace(/var\(--avatar-linea,#ff2020\)/g, col.linea);
-  // Pupilas: recorte fijo del tamano del ojo (al mirar no se salen del aro), grupo externo para
-  // mirar a los lados, interno para entrecerrar. El parpado (piel y linea de ojo cerrado) tapa el
-  // ojo solo en el instante cerrado del parpadeo.
+  // Pupilas: recorte fijo del tamano del ojo (al mirar no se salen del aro) y un grupo que se corre
+  // para mirar a los lados. El parpado (piel y linea de ojo cerrado) baja desde arriba y vuelve a
+  // subir en cada parpadeo.
   const quieto = `<svg xmlns="http://www.w3.org/2000/svg" width="1942" height="1988" viewBox="0 0 1942 1988" role="img" aria-label="Hand-drawn portrait of Marco">
 <rect width="1942" height="1988" fill="${col.bg}"/>
 ${interno}
@@ -135,9 +142,12 @@ ${interno}
     // El iris oscuro del dibujo es mayor que la pupila y esta corrido hacia arriba a la izquierda:
     // el parpado lo tapa entero y lleva la linea de ojo cerrado.
     const q = PARPADO[lado], px = cx + q.dx * rx, py = cy + q.dy * ry, prx = rx * q.rx, pry = ry * q.ry;
-    if (q.tope) defs += `<clipPath id="tope-${lado}"><rect x="0" y="${q.tope}" width="1942" height="${1988 - q.tope}"/></clipPath>`;
-    parpados += `<g class="parpado"${q.tope ? ` clip-path="url(#tope-${lado})"` : ""}><ellipse cx="${n(px)}" cy="${n(py)}" rx="${n(prx)}" ry="${n(pry)}" fill="${piel}"/>` +
-      `<path d="M${n(px - prx * 0.8)} ${n(py)}Q${n(px)} ${n(py + pry * 0.5)} ${n(px + prx * 0.8)} ${n(py)}" fill="none" stroke="${col.trazo}" stroke-width="22" stroke-linecap="round"/></g>`;
+    if (q.tope) {
+      const pts = [...q.tope, [q.tope[q.tope.length - 1][0], 1988], [q.tope[0][0], 1988]];
+      defs += `<clipPath id="tope-${lado}"><polygon points="${pts.map((x) => x.join(",")).join(" ")}"/></clipPath>`;
+    }
+    parpados += `<g${q.tope ? ` clip-path="url(#tope-${lado})"` : ""}><g class="parpado"><ellipse cx="${n(px)}" cy="${n(py - (q.sube || 0))}" rx="${n(prx)}" ry="${n(pry)}" fill="${piel}"/>` +
+      `<path d="M${n(px - prx * 0.8)} ${n(py)}Q${n(px)} ${n(py + ry * (q.ryLinea || q.ry) * 0.5)} ${n(px + prx * 0.8)} ${n(py)}" fill="none" stroke="${col.trazo}" stroke-width="22" stroke-linecap="round"/></g></g>`;
     radioMin = Math.min(radioMin, rx, ry);
     interno = interno.replace(re, `$1 clip-path="url(#ojo-${lado})"><g class="mira">$2</g>$4`);
   }
@@ -159,14 +169,15 @@ ${interno}
   }
   const cubre = olas.map((d, k) => `<path class="c c${k}" d="${d.join("")}"/>`).join("\n");
   const retrasos = olas.map((_, k) => `.c${k}{animation-delay:${(T0 + k * DT).toFixed(3)}s}`).join("");
-  // Ciclo de ojos: empieza a los 2.5 s, dura 7 s. Neutro de 0 a 18 % y de 60 a 100 %.
+  // Ciclo de ojos: empieza a los 2.5 s y dura 7 s. Parpadeos de 18 a 24 % y de 55 a 61 % (180 ms
+  // bajando, 60 ms cerrado, 180 ms subiendo, a velocidad pareja); mirada de 30 a 48 %. Neutro en lo demas.
   const css = `
 .c{opacity:0;animation:fuera .12s linear both}
 ${retrasos}
 @keyframes fuera{from{opacity:1}to{opacity:0}}
 .mira{transform-box:fill-box;transform-origin:50% 50%;animation:mirar 7s ease-in-out 2.5s infinite}
-.parpado{opacity:0;animation:tapa 7s steps(1,end) 2.5s infinite}
-@keyframes tapa{0%{opacity:0}18.8%{opacity:1}21.2%{opacity:0}56.2%{opacity:1}58.6%{opacity:0}100%{opacity:0}}
+.parpado{transform-box:fill-box;transform-origin:50% 0%;transform:scaleY(0);animation:cierra 7s linear 2.5s infinite}
+@keyframes cierra{0%,18%{transform:scaleY(0)}20.571%,21.429%{transform:scaleY(1)}24%,55%{transform:scaleY(0)}57.571%,58.429%{transform:scaleY(1)}61%,100%{transform:scaleY(0)}}
 @keyframes mirar{0%,30%,48%,100%{transform:translateX(0) scale(1)}33%,38%{transform:translateX(-${MIRADA}px) scale(${S})}41%,45%{transform:translateX(${MIRADA}px) scale(${S})}}
 @media (prefers-reduced-motion:reduce){*{animation:none!important}.cubre{display:none}}`;
   const animado = `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" role="img" aria-label="Hand-drawn portrait of Marco">
@@ -185,8 +196,13 @@ ${cubre}
 // Parpado: centro corrido y radios en proporcion a la pupila (medidos en la captura del dibujo:
 // iris izquierdo de unos 109 x 103 unidades con centro en 685,1056, pupila de 73 en 698,1085; el
 // derecho se ajusto mirando el cuadro del parpadeo hasta que no quedaron restos del iris).
-const PARPADO = { l: { dx: -0.18, dy: -0.4, rx: 1.62, ry: 1.58 }, r: { dx: -0.225, dy: -0.32, rx: 1.89, ry: 1.71, tope: 936 } };
-// tope: el iris derecho toca la linea de arriba de los lentes; el parpado no sube de y=936 para no morderla.
+// tope: borde de abajo de la linea de arriba del lente derecho (escaneado columna por columna en el
+// dibujo a 1 unidad por pixel, +1; donde el iris se junta con esa linea se interpola). El parpado no
+// sube de ahi: tapa el iris entero sin morder ni engrosar la linea del lente.
+const TOPE_R = [[1040, 946], [1060, 941], [1100, 932], [1150, 928], [1170, 936], [1185, 935], [1200, 931], [1215, 928], [1230, 923], [1245, 919], [1260, 924], [1280, 929], [1288, 922], [1297, 920], [1310, 918], [1322, 919], [1330, 923], [1336, 919], [1340, 917], [1360, 919], [1375, 923], [1400, 931], [1430, 946]];
+const PARPADO = { l: { dx: -0.18, dy: -0.4, rx: 1.62, ry: 1.58 }, r: { dx: -0.225, dy: -0.32, rx: 2.11, ry: 2.17, sube: 35, ryLinea: 1.71, tope: TOPE_R } };
+// En el ojo derecho el iris sube mas que el borde de la elipse (x 1300-1310, y 924-936): la elipse
+// sube 35 unidades y crece hacia arriba; lo que pase de la linea del lente lo corta el tope.
 const MIRADA = 14;
 // Caja de un trazo con comandos M, c, l, z (los unicos del avatar); incluye puntos de control.
 function caja(d) {
@@ -213,28 +229,40 @@ function caja(d) {
 fs.mkdirSync(salida, { recursive: true });
 for (const f of fs.readdirSync(salida)) if (f.endsWith(".svg")) fs.unlinkSync(path.join(salida, f));
 const hechos = [];
-hechos.push(escribir(`exp1-fuentes-${V}.svg`, textoHero({ sg: "PilotoSG", inter: "PilotoInter", mono: "PilotoMono" }, true)));
-hechos.push(escribir(`exp1-control-${V}.svg`, textoHero({ sg: "NoExisteSG", inter: "NoExisteInter", mono: "NoExisteMono" }, false)));
+hechos.push(escribir(`exp1-fuentes-${V}.svg`, textoHero({ sg: "PilotoSG", inter: "PilotoInter", mono: "PilotoMono" }, ["sg", "inter", "mono"])));
+hechos.push(escribir(`exp1-control-${V}.svg`, textoHero({ sg: "NoExisteSG", inter: "NoExisteInter", mono: "NoExisteMono" }, [])));
+const FAM = { sg: "PilotoSG", inter: "PilotoInter", mono: "PilotoMono" };
+for (const k of ["sg", "inter", "mono"]) hechos.push(escribir(`exp1-sin-${k}-${V2}.svg`, textoHero(FAM, ["sg", "inter", "mono"].filter((x) => x !== k))));
 PEST.forEach((_, i) => {
   hechos.push(escribir(`exp2-pestana${i + 1}-${V}.svg`, pestana(i, 42)));
   hechos.push(escribir(`exp2-alta${i + 1}-${V}.svg`, pestana(i, 76)));
 });
 hechos.push(escribir(`exp2-cuerpo-${V}.svg`, cuerpo()));
+// 2f: pestanas de 84 de alto (barra de titulo y pestana) y cuerpo, en variante oscura y clara.
+for (const [tem, c] of [["oscuro", OSC], ["claro", CLA]]) {
+  PEST.forEach((_, i) => hechos.push(escribir(`exp2-f-${tem}${i + 1}-${V2}.svg`, pestana(i, ALTO_F, c))));
+  hechos.push(escribir(`exp2-f-cuerpo-${tem}-${V2}.svg`, cuerpo(c)));
+}
 hechos.push(escribir(`exp3-oscuro-${V}.svg`, tema(OSC, "Dark theme image")));
 hechos.push(escribir(`exp3-claro-${V}.svg`, tema(CLA, "Light theme image")));
 for (const tem of ["oscuro", "claro"]) {
   const { animado, quieto } = avatarAnimado(tem);
-  hechos.push(escribir(`exp4-avatar-${tem}-${V}.svg`, animado));
-  hechos.push(escribir(`exp4-avatar-${tem}-quieto-${V}.svg`, quieto));
+  hechos.push(escribir(`exp4-avatar-${tem}-${V2}.svg`, animado));
+  hechos.push(escribir(`exp4-avatar-${tem}-quieto-${V2}.svg`, quieto));
 }
 
 // ---------- README de la rama del piloto ----------
 // Enlaces provisionales: solo sirven para que cada pestana sea un enlace distinto; no estan verificados.
 const ENL = ["home", "projects", "stack", "experience", "about", "contact"].map((a) => `https://www.kairomx.tech/cv/#${a}`);
 const A = (n) => `piloto/assets/${n}-${V}.svg`;
+const A2 = (n) => `piloto/assets/${n}-${V2}.svg`;
+const OSCURO = "(prefers-color-scheme: dark)";
+const pic = (oscuro, img) => `<picture><source media="${OSCURO}" srcset="${oscuro}">${img}</picture>`;
 const pct = (w) => ((w / ANCHO) * 100).toFixed(4) + "%";
 const fila = (f, alta, extra) => PEST.map(([, w], i) => `<a href="${ENL[i]}"><img alt="exp2${f}-t${i + 1}" width="${pct(w)}"${extra} src="${A(`exp2-${alta ? "alta" : "pestana"}${i + 1}`)}"></a>`).join("");
 const cuerpoImg = (f, extra) => `<img alt="exp2${f}-cuerpo" width="100%"${extra} src="${A("exp2-cuerpo")}">`;
+const filaF = PEST.map(([, w], i) => `<a href="${ENL[i]}">${pic(A2(`exp2-f-oscuro${i + 1}`), `<img alt="exp2f-t${i + 1}" width="${pct(w)}" align="top" src="${A2(`exp2-f-claro${i + 1}`)}">`)}</a>`).join("");
+const cuerpoF = pic(A2("exp2-f-cuerpo-oscuro"), `<img alt="exp2f-cuerpo" width="100%" align="top" src="${A2("exp2-f-cuerpo-claro")}">`);
 const readme = `# Piloto técnico de la cabecera del perfil
 
 Rama de prueba. No es el perfil: aquí se mide si GitHub pinta lo que necesita el README nuevo.
@@ -249,6 +277,14 @@ Space Grotesk 600, Space Mono 700 e Inter 400 dentro del SVG, en base64.
 Control: el mismo SVG pidiendo fuentes que no existen. Tiene que verse distinto.
 
 <img alt="exp1-control" width="100%" src="${A("exp1-control")}">
+
+Controles por fuente: a cada uno le falta una sola de las tres fuentes.
+
+<img alt="exp1-sin-sg" width="100%" src="${A2("exp1-sin-sg")}">
+
+<img alt="exp1-sin-inter" width="100%" src="${A2("exp1-sin-inter")}">
+
+<img alt="exp1-sin-mono" width="100%" src="${A2("exp1-sin-mono")}">
 
 ## Experimento 2: pestañas como imágenes pegadas
 
@@ -277,6 +313,10 @@ Seis pestañas, cada una con su enlace, y debajo el cuerpo de la ventana. Los en
 
 <p>${fila("e", true, ' align="top"')}<br>${cuerpoImg("e", ' align="top"')}</p>
 
+### 2f. Como 2e, cada pieza en un picture con su variante de tema, y fila de 84 de alto
+
+<p>${filaF}<br>${cuerpoF}</p>
+
 ## Experimento 3: tema claro y oscuro
 
 <picture>
@@ -286,11 +326,15 @@ Seis pestañas, cada una con su enlace, y debajo el cuerpo de la ventana. Los en
 
 ## Experimento 4: avatar animado
 
-Entra armándose con cuadritos, parpadea y mira a los lados. Con «reducir movimiento» se carga la versión quieta.
+Entra armándose con cuadritos, parpadea y mira a los lados. Un solo picture con cuatro fuentes:
+tema oscuro o claro, con o sin «reducir movimiento» (la versión quieta).
 
-<picture><source media="(prefers-reduced-motion: reduce)" srcset="${A("exp4-avatar-oscuro-quieto")}"><img alt="exp4-avatar-oscuro" width="400" src="${A("exp4-avatar-oscuro")}"></picture>
-
-<picture><source media="(prefers-reduced-motion: reduce)" srcset="${A("exp4-avatar-claro-quieto")}"><img alt="exp4-avatar-claro" width="400" src="${A("exp4-avatar-claro")}"></picture>
+<picture>
+<source media="(prefers-color-scheme: dark) and (prefers-reduced-motion: reduce)" srcset="${A2("exp4-avatar-oscuro-quieto")}">
+<source media="(prefers-color-scheme: dark)" srcset="${A2("exp4-avatar-oscuro")}">
+<source media="(prefers-reduced-motion: reduce)" srcset="${A2("exp4-avatar-claro-quieto")}">
+<img alt="exp4-avatar" width="400" src="${A2("exp4-avatar-claro")}">
+</picture>
 `;
 fs.writeFileSync(path.join(raiz, "README.md"), readme, { encoding: "utf8" });
 

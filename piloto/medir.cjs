@@ -1,25 +1,45 @@
 // Piloto del README del perfil: mide los cuatro experimentos en github.com y en local.
-// Uso: node piloto/medir.cjs <carpeta-de-salida> [--solo-local]
+// Uso: node piloto/medir.cjs <carpeta-de-salida> [--solo-local] [--ref <commit>]
 // Playwright se toma de NODE_PATH. Chromium siempre sin cabeza. Solo escribe en <carpeta-de-salida>.
+// Con --ref <commit> mide la version de ese commit: sus SVG salen de `git show` (copiados dentro de la
+// carpeta de salida) y la pagina es github.com/.../tree/<commit>. En ese modo solo corren las
+// comprobaciones de la segunda vuelta, con lo que esa version decia de si misma.
 const fs = require("fs");
 const path = require("path");
+const { execFileSync } = require("child_process");
 const { chromium } = require("playwright");
 
 if (!process.argv[2] || process.argv[2].startsWith("--")) {
-  console.error("Uso: node piloto/medir.cjs <carpeta-de-salida> [--solo-local]");
+  console.error("Uso: node piloto/medir.cjs <carpeta-de-salida> [--solo-local] [--ref <commit>]");
   process.exit(2);
 }
 const SALIDA = path.resolve(process.argv[2]);
 const SOLO_LOCAL = process.argv.includes("--solo-local");
-const ASSETS = path.join(__dirname, "assets");
-const FUENTES = path.resolve(__dirname, "../_trabajo/fuentes");
-const URL_GH = "https://github.com/MarcoSebastianOrtegaMolina/MarcoSebastianOrtegaMolina/tree/piloto-cabecera";
-const UMBRAL = 32; // un pixel difiere si algun canal cambia mas de 32/255
-const FORMAS = { a: "en linea sin espacios", b: 'align="left"', c: "tabla", d: 'en linea con align="top"', e: 'en linea con align="top", pestanas de 76 de alto' };
-// Tiempos de captura del avatar: armado (0.2 a 2.5), parpadeo 1 entrecerrando (3.78) y cerrado
-// (3.88), mirada a un lado (5.0) y al otro (5.5), parpadeo 2 cerrado (6.46) y reposo (8.5).
-const T_AVATAR = [0.2, 0.4, 0.6, 1.2, 2.5, 3.78, 3.88, 5.0, 5.5, 6.46, 8.5];
+const iRef = process.argv.indexOf("--ref");
+const REF = iRef > 0 ? process.argv[iRef + 1] : null;
+if (iRef > 0 && !/^[0-9a-f]{7,40}$/.test(REF || "")) { console.error("--ref necesita un hash de commit"); process.exit(2); }
+const RAIZ = path.resolve(__dirname, "..");
 fs.mkdirSync(SALIDA, { recursive: true });
+let ASSETS = path.join(__dirname, "assets");
+if (REF) {
+  ASSETS = path.join(SALIDA, "assets-" + REF);
+  fs.mkdirSync(ASSETS, { recursive: true });
+  for (const n of execFileSync("git", ["ls-tree", "--name-only", REF, "piloto/assets/"], { cwd: RAIZ, encoding: "utf8" }).split("\n").filter(Boolean))
+    fs.writeFileSync(path.join(ASSETS, path.basename(n)), execFileSync("git", ["show", `${REF}:${n}`], { cwd: RAIZ }));
+}
+const FUENTES = path.resolve(__dirname, "../_trabajo/fuentes");
+const URL_GH = "https://github.com/MarcoSebastianOrtegaMolina/MarcoSebastianOrtegaMolina/tree/" + (REF || "piloto-cabecera");
+// Lo que cada version decia de si misma: forma del plan A, criterio para decir que las fuentes se
+// pintan, e instantes que se capturan como fuera del parpadeo.
+const VERSION = REF
+  ? { formaPlanA: "e", criterioFuentes: "global", fueraDeParpadeo: [2.5, 3.78, 8.5] }
+  : { formaPlanA: "f", criterioFuentes: "por-linea", fueraDeParpadeo: [2.5, 3.4, 8.5] };
+const UMBRAL = 32; // un pixel difiere si algun canal cambia mas de 32/255
+const FORMAS = { a: "en linea sin espacios", b: 'align="left"', c: "tabla", d: 'en linea con align="top"', e: 'en linea con align="top", pestanas de 76 de alto', f: 'como 2e, cada pieza en <picture> con su tema, fila de 84 de alto' };
+// Tiempos de captura del avatar como <img> con reloj real: armado (0.2 a 2.5), antes del parpadeo
+// (3.4), mirada a un lado (5.0) y al otro (5.5) y reposo (8.5). Los cuadros del parpadeo se toman
+// aparte, con el reloj de la animacion fijo (segunda vuelta, B2 a B4).
+const T_AVATAR = [0.2, 0.4, 0.6, 1.2, 2.5, 3.4, 5.0, 5.5, 8.5];
 
 const archivo = (pref) => {
   const f = fs.readdirSync(ASSETS).find((n) => n.startsWith(pref + "-v") && n.endsWith(".svg"));
@@ -32,21 +52,22 @@ const r3 = (x) => Math.round(x * 1000) / 1000;
 const res = { fecha: new Date().toISOString(), url: URL_GH, umbralCanal: UMBRAL, soloLocal: SOLO_LOCAL };
 
 // Compara dos PNG en un canvas: % de pixeles que difieren (> UMBRAL y > 8) y diferencia media.
-async function comparar(lab, a, b) {
-  return lab.evaluate(async ({ a, b, T }) => {
+async function comparar(lab, a, b, bandas = null) {
+  return lab.evaluate(async ({ a, b, T, bandas }) => {
     const carga = (s) => new Promise((r, j) => { const i = new Image(); i.onload = () => r(i); i.onerror = j; i.src = "data:image/png;base64," + s; });
     const [ia, ib] = await Promise.all([carga(a), carga(b)]);
     const w = Math.min(ia.width, ib.width), h = Math.min(ia.height, ib.height);
     const px = (im) => { const c = document.createElement("canvas"); c.width = w; c.height = h; const x = c.getContext("2d"); x.drawImage(im, 0, 0); return x.getImageData(0, 0, w, h).data; };
     const da = px(ia), db = px(ib);
-    let n = 0, n8 = 0, s = 0;
+    let n = 0, n8 = 0, s = 0, tot = 0;
     for (let i = 0; i < da.length; i += 4) {
+      if (bandas) { const fila = Math.floor(i / 4 / w) / h; if (!bandas.some(([y0, y1]) => fila >= y0 && fila < y1)) continue; }
+      tot++;
       const d = Math.max(Math.abs(da[i] - db[i]), Math.abs(da[i + 1] - db[i + 1]), Math.abs(da[i + 2] - db[i + 2]));
       s += d; if (d > T) n++; if (d > 8) n8++;
     }
-    const tot = w * h;
     return { tamA: [ia.width, ia.height], tamB: [ib.width, ib.height], pct: +(100 * n / tot).toFixed(3), pct8: +(100 * n8 / tot).toFixed(3), mediaAbs: +(s / tot).toFixed(3) };
-  }, { a: a.toString("base64"), b: b.toString("base64"), T: UMBRAL });
+  }, { a: a.toString("base64"), b: b.toString("base64"), T: UMBRAL, bandas });
 }
 async function colorMedio(lab, png) {
   return lab.evaluate(async (s) => {
@@ -168,6 +189,7 @@ function revisarSVG() {
   const lab = await (await nav.newContext()).newPage();
   await lab.goto("about:blank");
 
+  if (!REF) {
   // ---------------- Experimento 1 ----------------
   const e1 = (res.exp1 = { archivos: { fuentes: path.basename(archivo("exp1-fuentes")), control: path.basename(archivo("exp1-control")) } });
   if (SOLO_LOCAL) {
@@ -281,45 +303,248 @@ function revisarSVG() {
     const [sinPic] = await tomaLocal(nav, svg, { w: W, h: H, reducido: true }, [0.4], `exp4-${tema}-reducido-sin-picture`);
     t.local.reducidoSinPicture04VsOriginal = await comparar(lab, sinPic.png, ref.img);
 
-    if (!SOLO_LOCAL) {
-      for (const reducido of [false, true]) {
-        const gh = await abrirGH(nav, { ancho: 1280, tema: "dark", dpr: 2, reducido });
-        const sel = imgGH("exp4-avatar-" + tema);
-        const el = gh.page.locator(sel);
-        await el.scrollIntoViewIfNeeded();
-        const fondo = await gh.page.evaluate(() => getComputedStyle(document.body).backgroundColor);
-        const carga = await arrancar(gh.page, sel);
-        const c = await caja(el);
-        const tomas = await tomasEn(gh.page, el, reducido ? [0.4] : [0.4, 8.5], `gh-exp4-${tema}${reducido ? "-reducido" : ""}`);
-        const geo = { w: c.w, h: c.h, fx: frac(c.x), fy: frac(c.y), bg: fondo };
-        const [locFin] = await tomaLocal(nav, svg, geo, [8.5], `exp4-${tema}-final-geo-gh`);
-        const refGeo = (await referenciaAvatar(nav, tema, geo, `ref-${tema}-geo-gh`)).img;
-        if (!reducido) {
-          t.github = {
-            caja: { x: r3(c.x), y: r3(c.y), w: r3(c.w), h: r3(c.h) }, cargo: carga,
-            capturas: tomas.map((x) => ({ t: x.t, capturaEntre: x.capturaEntre })),
-            t04VsT85: await comparar(lab, tomas[0].png, tomas[1].png),
-            finalVsLocalFinal: await comparar(lab, tomas[1].png, locFin.png),
-            finalVsOriginal: await comparar(lab, tomas[1].png, refGeo),
-          };
-          t.github.animacionCorre = t.github.t04VsT85.pct > 1;
-          t.github.finalCoincide = t.github.finalVsLocalFinal.pct <= 1.5;
-        } else {
-          t.githubReducido = {
-            cargo: carga, capturaEntre: tomas[0].capturaEntre,
-            t04VsLocalFinal: await comparar(lab, tomas[0].png, locFin.png),
-            t04VsOriginal: await comparar(lab, tomas[0].png, refGeo),
-          };
-          t.githubReducido.quietoYCompleto = t.githubReducido.t04VsLocalFinal.pct <= 1.5;
-        }
-        await gh.ctx.close();
-      }
-    }
     t.fidelidadMenor1 = t.local.finalVsOriginal.pct < 1;
     t.pesoOk = t.kb <= 600;
     const sv = res.svg[path.basename(svg)];
     t.limpio = sv.http === 0 && sv.script === 0 && sv.foreignObject === 0;
   }
+
+  }
+
+  // ================= Segunda vuelta: una comprobacion por hallazgo del revisor =================
+  // Cada comprobacion repite los pasos del revisor y deja "pasa". Con --ref corre contra esa version.
+  const sv = (res.segundaVuelta = { ref: REF || "piloto-cabecera", version: VERSION });
+  const nombreDe = (u) => (u ? decodeURIComponent(u.split("?")[0].split("/").pop()) : null);
+  const rangos = (ws) => { const o = []; for (const w of ws) { const u = o[o.length - 1]; if (u && w === u[1] + 1) u[1] = w; else o.push([w, w]); } return o.map(([a, b]) => (a === b ? `${a}` : `${a}-${b}`)).join(", "); };
+
+  // ---- M1 y M3: barrido de 300 a 1400 px de la forma del plan A, en los dos temas, a 1x y 2x ----
+  if (!SOLO_LOCAL) {
+    const f = VERSION.formaPlanA;
+    const m = (sv.M1_M3 = { forma: f, combos: {} });
+    for (const tema of ["dark", "light"]) for (const dpr of [1, 2]) {
+      const { ctx, page } = await abrirGH(nav, { ancho: 1400, tema, dpr });
+      const piezas = await page.evaluate((f) => [1, 2, 3, 4, 5, 6].map((i) => `exp2${f}-t${i}`).concat([`exp2${f}-cuerpo`]).map((a) => {
+        const i = document.querySelector(`article.markdown-body img[alt="${a}"]`);
+        return i ? { alt: a, src: i.currentSrc, enPicture: i.parentElement.tagName === "PICTURE" } : { alt: a, src: null, enPicture: false };
+      }), f);
+      piezas.forEach((p) => (p.src = nombreDe(p.src)));
+      const fallos = [];
+      let peor = null;
+      for (let w = 300; w <= 1400; w++) {
+        await page.setViewportSize({ width: w, height: 900 });
+        const r = await page.evaluate((f) => {
+          const q = (a) => document.querySelector(`article.markdown-body img[alt="${a}"]`);
+          const t = [1, 2, 3, 4, 5, 6].map((i) => q(`exp2${f}-t${i}`)), cu = q(`exp2${f}-cuerpo`);
+          if (t.some((x) => !x) || !cu) return { error: "faltan imagenes" };
+          const rt = t.map((x) => x.getBoundingClientRect()), rc = cu.getBoundingClientRect();
+          const maxH = Math.max(...rt.slice(1).map((x, i) => Math.abs(x.left - rt[i].right)));
+          const caidas = rt.filter((x) => Math.abs(x.top - rt[0].top) > 0.5).length;
+          const V = rc.top - Math.max(...rt.map((x) => x.bottom));
+          const borde = rc.right - rt[5].right;
+          return { maxH: +maxH.toFixed(3), V: +V.toFixed(3), caidas, borde: +borde.toFixed(3), alto: +rt[0].height.toFixed(3), exito: caidas === 0 && maxH <= 0.5 && Math.abs(V) <= 0.5 && Math.abs(borde) <= 0.5 };
+        }, f);
+        if (r.error) { fallos.push({ w, error: r.error }); break; }
+        if (!r.exito) fallos.push({ w, ...r });
+        if (!peor || Math.abs(r.V) > Math.abs(peor.V)) peor = { w, ...r };
+        if (w === 320) {
+          const c = await page.evaluate((f) => { const q = (a) => document.querySelector(`article.markdown-body img[alt="${a}"]`).getBoundingClientRect(); const a = q(`exp2${f}-t1`), b = q(`exp2${f}-cuerpo`); return { x: b.left, y: a.top + scrollY, w: b.width, h: b.bottom - a.top }; }, f).catch(() => null);
+          if (c) guardar(`sv-m1-${f}-320-${tema}-dpr${dpr}.png`, await page.screenshot({ fullPage: true, clip: { x: c.x, y: c.y - 4, width: c.w, height: c.h + 8 } }));
+        }
+      }
+      const desde320 = fallos.filter((x) => x.w >= 320);
+      m.combos[`${tema}-dpr${dpr}`] = {
+        piezas, fallos: fallos.length, fallosDesde320: desde320.length, anchosQueFallan: rangos(fallos.map((x) => x.w)),
+        minimoSostenido: fallos.length ? Math.max(...fallos.map((x) => x.w)) + 1 : 300, peorHuecoV: peor, ejemploFallo: fallos[0] || null,
+        temaBien: piezas.every((p) => p.src && p.src.includes(tema === "dark" ? "oscuro" : "claro")),
+      };
+      await ctx.close();
+    }
+    const cs = Object.values(m.combos);
+    m.M1pasa = cs.every((c) => c.fallosDesde320 === 0);
+    m.minimoSostenido = Math.max(...cs.map((c) => c.minimoSostenido));
+    m.M3pasa = m.M1pasa && cs.every((c) => c.temaBien && c.piezas.every((p) => p.enPicture));
+  }
+
+  // ---- M2: un solo <picture> del avatar con cuatro fuentes, cuatro combinaciones en github.com ----
+  if (!SOLO_LOCAL) {
+    const m = (sv.M2 = { combos: {} });
+    const esperado = { "dark-no-preference": "exp4-avatar-oscuro-v", "dark-reduce": "exp4-avatar-oscuro-quieto-v", "light-no-preference": "exp4-avatar-claro-v", "light-reduce": "exp4-avatar-claro-quieto-v" };
+    for (const tema of ["dark", "light"]) for (const reducido of [false, true]) {
+      const k = `${tema}-${reducido ? "reduce" : "no-preference"}`;
+      const { ctx, page } = await abrirGH(nav, { ancho: 1280, tema, dpr: 2, reducido });
+      const sel = imgGH("exp4-avatar");
+      if (!(await page.locator(sel).count())) { m.combos[k] = { error: "no hay imagen con alt exp4-avatar", pasa: false }; await ctx.close(); continue; }
+      const nFuentes = await page.evaluate((s) => { const p = document.querySelector(s).parentElement; return p.tagName === "PICTURE" ? p.querySelectorAll("source").length : 0; }, sel);
+      const el = page.locator(sel);
+      await el.scrollIntoViewIfNeeded();
+      const fondo = await page.evaluate(() => getComputedStyle(document.body).backgroundColor);
+      const carga = await arrancar(page, sel);
+      const c = await caja(el);
+      const tomas = await tomasEn(page, el, reducido ? [0.4] : [0.4, 8.5], `sv-m2-${k}`);
+      const geo = { w: c.w, h: c.h, fx: frac(c.x), fy: frac(c.y), bg: fondo };
+      const tArch = tema === "dark" ? "oscuro" : "claro", otro = tema === "dark" ? "claro" : "oscuro";
+      const [finEsp] = await tomaLocal(nav, archivo(`exp4-avatar-${tArch}`), geo, [8.5], `sv-m2-final-${tArch}-${k}`);
+      const [finOtro] = await tomaLocal(nav, archivo(`exp4-avatar-${otro}`), geo, [8.5], `sv-m2-final-${otro}-${k}`);
+      const ult = tomas[tomas.length - 1];
+      const r = {
+        fuentesEnElPicture: nFuentes, archivoCargado: nombreDe(carga.currentSrc), esperado: esperado[k],
+        capturas: tomas.map((x) => ({ t: x.t, capturaEntre: x.capturaEntre })),
+        capturaVsFinalEsperado: (await comparar(lab, ult.png, finEsp.png)).pct,
+        capturaVsFinalOtroTema: (await comparar(lab, ult.png, finOtro.png)).pct,
+        corre: reducido ? null : (await comparar(lab, tomas[0].png, tomas[1].png)).pct,
+      };
+      r.cargaBien = !!r.archivoCargado && r.archivoCargado.startsWith(esperado[k]);
+      r.pasa = r.cargaBien && r.capturaVsFinalEsperado <= 1.5 && r.capturaVsFinalOtroTema > 10 && (reducido || r.corre > 1);
+      m.combos[k] = r;
+      await ctx.close();
+    }
+    m.pasa = Object.values(m.combos).every((r) => r.pasa);
+  }
+
+  // ---- B1: fuentes comparadas por linea de texto, con un control por fuente ----
+  {
+    const ALTO = 250, FAMS = { sg: "PilotoSG", inter: "PilotoInter", mono: "PilotoMono" };
+    const BANDAS = { sg: [[36, 58], [92, 188]], mono: [[66, 84]], inter: [[202, 224]] };
+    const fr = (bs) => bs.map(([a, b]) => [a / ALTO, b / ALTO]);
+    const fuentesSvg = archivo("exp1-fuentes");
+    const texto = fs.readFileSync(fuentesSvg, "utf8");
+    const geo = { w: 846, h: 250 };
+    const [base] = await tomaLocal(nav, fuentesSvg, geo, null, "sv-b1-fuentes");
+    const m = (sv.B1 = { criterio: VERSION.criterioFuentes, bandas: BANDAS, controles: {} });
+    for (const k of Object.keys(FAMS)) {
+      const t2 = texto.replace(new RegExp(`@font-face\\{font-family:'${FAMS[k]}'[^}]*\\}`), "");
+      if (t2 === texto) throw new Error("no encontre la @font-face de " + k);
+      const sin = path.join(SALIDA, `sv-b1-sin-${k}.svg`);
+      fs.writeFileSync(sin, t2);
+      const [ctl] = await tomaLocal(nav, sin, geo, null, `sv-b1-sin-${k}`);
+      const global = (await comparar(lab, ctl.png, base.png)).pct;
+      const banda = (await comparar(lab, ctl.png, base.png, fr(BANDAS[k]))).pct;
+      m.controles[k] = { global, banda, detectado: VERSION.criterioFuentes === "global" ? global > 1 : banda > 1 };
+    }
+    m.pasaLocal = Object.values(m.controles).every((c) => c.detectado);
+    if (!SOLO_LOCAL && !REF) {
+      const gh = await abrirGH(nav, { ancho: 1280, tema: "dark", dpr: 2 });
+      const fondo = await gh.page.evaluate(() => getComputedStyle(document.body).backgroundColor);
+      m.github = {};
+      for (const n of ["fuentes", "sin-sg", "sin-inter", "sin-mono"]) {
+        const el = gh.page.locator(imgGH("exp1-" + n));
+        await el.scrollIntoViewIfNeeded();
+        await gh.page.waitForTimeout(1500);
+        const c = await caja(el);
+        const png = await el.screenshot();
+        guardar(`sv-b1-gh-${n}.png`, png);
+        const [loc] = await tomaLocal(nav, fuentesSvg, { w: c.w, h: c.h, fx: frac(c.x), fy: frac(c.y), bg: fondo }, null, `sv-b1-fuentes-para-${n}`);
+        m.github[n] = Object.fromEntries(await Promise.all(Object.keys(BANDAS).map(async (b) => [b, (await comparar(lab, png, loc.png, fr(BANDAS[b]))).pct])));
+      }
+      await gh.ctx.close();
+      m.pasaGithub = Object.values(m.github.fuentes).every((v) => v <= 1) && ["sg", "inter", "mono"].every((k) => m.github["sin-" + k][k] > 1);
+    }
+    m.pasa = m.pasaLocal && m.pasaGithub !== false;
+  }
+
+  // ---- B2, B3 y B4: el parpadeo con el reloj de la animacion fijo (cuadros exactos) ----
+  async function reloj(svg) {
+    const ctx = await nav.newContext({ viewport: { width: 1942, height: 1988 }, deviceScaleFactor: 1 });
+    const page = await ctx.newPage();
+    await page.goto(urlArchivo(svg));
+    await page.waitForTimeout(300);
+    return {
+      en: async (t, clip) => {
+        await page.evaluate(async (ms) => { document.getAnimations().forEach((a) => { a.pause(); a.currentTime = ms; }); await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r))); }, t * 1000);
+        return page.screenshot({ clip });
+      },
+      cerrar: () => ctx.close(),
+    };
+  }
+  function analizar(serie) {
+    const max = Math.max(...serie.map((s) => s.v));
+    if (max < 0.5) return { error: "no hay parpadeo en la ventana", max };
+    const i0 = serie.findIndex((s) => s.v > 0.02 * max), i1 = serie.findIndex((s) => s.v >= 0.95 * max);
+    let i2 = i1; while (i2 + 1 < serie.length && serie[i2 + 1].v >= 0.95 * max) i2++;
+    let i3 = i2; while (i3 + 1 < serie.length && serie[i3 + 1].v > 0.02 * max) i3++;
+    const medio = (a, b) => serie.slice(a, b).filter((s) => s.v > 0.1 * max && s.v < 0.9 * max).length;
+    const monot = (a, b, sg) => serie.slice(a, b).every((s, k, arr) => k === 0 || sg * (s.v - arr[k - 1].v) >= -0.005 * max);
+    return {
+      max: +max.toFixed(3), empieza: serie[i0].t, cerrado: [serie[i1].t, serie[i2].t], termina: serie[i3].t,
+      cierreMs: Math.round((serie[i1].t - serie[i0].t) * 1000), aperturaMs: Math.round((serie[i3].t - serie[i2].t) * 1000),
+      intermediosCierre: medio(i0, i1), intermediosApertura: medio(i2 + 1, i3 + 1),
+      sinSaltos: monot(i0, i1 + 1, 1) && monot(i2, i3 + 1, -1), tMedioCerrado: +((serie[i1].t + serie[i2].t) / 2).toFixed(3),
+    };
+  }
+  {
+    const b2 = (sv.B2 = {}), b3 = (sv.B3 = {}), b4 = (sv.B4 = { fueraDeParpadeo: VERSION.fueraDeParpadeo });
+    const OJOS = { x: 560, y: 900, width: 840, height: 260 }, DER = { x: 1040, y: 860, width: 440, height: 300 };
+    for (const tema of ["oscuro", "claro"]) {
+      await referenciaAvatar(nav, tema, { w: 400, h: 400 * 1988 / 1942 }, `sv-ref-${tema}`);
+      const rel = await reloj(archivo(`exp4-avatar-${tema}`));
+      const abierto = await rel.en(3.0, OJOS);
+      const parpadeos = [];
+      for (const [a, b] of [[3.5, 4.3], [6.1, 6.9]]) {
+        const serie = [];
+        for (let k = 0; a + k * 0.025 <= b + 1e-9; k++) { const t = +(a + k * 0.025).toFixed(3); const png = await rel.en(t, OJOS); serie.push({ t, v: (await comparar(lab, png, abierto)).pct, png }); }
+        const r = analizar(serie);
+        if (!r.error) {
+          const mitad = serie.filter((s) => s.t >= r.empieza && s.t <= r.cerrado[0]).sort((x, y) => Math.abs(x.v - r.max / 2) - Math.abs(y.v - r.max / 2))[0];
+          guardar(`sv-b3-${tema}-${mitad.t}s-mitad.png`, mitad.png);
+          r.serie = serie.map((s) => [s.t, s.v]);
+        }
+        parpadeos.push(r);
+      }
+      b3[tema] = parpadeos;
+      // B2: ojo derecho cerrado contra el original, a 1 unidad por pixel.
+      const tC = parpadeos[0].error ? 3.9 : parpadeos[0].tMedioCerrado;
+      const cerrado = await rel.en(tC, DER);
+      guardar(`sv-b2-${tema}-cerrado-${tC}s.png`, cerrado);
+      guardar(`sv-b3-${tema}-cerrado-${tC}s-ojos.png`, await rel.en(tC, OJOS));
+      // B4: el mismo instante dos veces da lo mismo con el reloj fijo.
+      const d1 = await rel.en(3.4, OJOS), d2 = await rel.en(3.4, OJOS);
+      b4[`${tema}Repetible`] = (await comparar(lab, d1, d2)).pct === 0;
+      await rel.cerrar();
+      const relO = await reloj(path.join(SALIDA, `ref-avatar-${tema}.svg`));
+      const orig = await relO.en(0, DER);
+      guardar(`sv-b2-${tema}-original.png`, orig);
+      await relO.cerrar();
+      b2[tema] = await lab.evaluate(async ({ c, o, umbral }) => {
+        const carga = (s) => new Promise((r) => { const i = new Image(); i.onload = () => r(i); i.src = "data:image/png;base64," + s; });
+        const [ic, io] = await Promise.all([carga(c), carga(o)]);
+        const W = ic.width, H = ic.height, X0 = 1040, Y0 = 860;
+        const px = (im) => { const cv = document.createElement("canvas"); cv.width = W; cv.height = H; const g = cv.getContext("2d"); g.drawImage(im, 0, 0); return g.getImageData(0, 0, W, H).data; };
+        const dc = px(ic), dor = px(io);
+        const osc = (d, x, y) => { const k = ((y - Y0) * W + (x - X0)) * 4; return 0.299 * d[k] + 0.587 * d[k + 1] + 0.114 * d[k + 2] < umbral; };
+        // Restos: pixeles oscuros dentro del ojo que no son la linea de ojo cerrado (la mancha mayor).
+        const R = { x0: 1085, x1: 1380, y0: 940, y1: 1130 }, vis = new Set(), comps = [];
+        for (let y = R.y0; y < R.y1; y++) for (let x = R.x0; x < R.x1; x++) {
+          const id = y * 4000 + x; if (vis.has(id) || !osc(dc, x, y)) continue;
+          let n = 0; const pila = [[x, y]]; vis.add(id);
+          while (pila.length) { const [a, b] = pila.pop(); n++; for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) { const u = a + dx, v = b + dy, j = v * 4000 + u; if (u < R.x0 || u >= R.x1 || v < R.y0 || v >= R.y1 || vis.has(j) || !osc(dc, u, v)) continue; vis.add(j); pila.push([u, v]); } }
+          comps.push(n);
+        }
+        comps.sort((a, b) => b - a);
+        const restos = comps.slice(1).reduce((s, n) => s + n, 0);
+        // Canto: borde de abajo de la linea de arriba del lente, cerrado contra original.
+        // La linea es a mano y tiene trazos dobles: se juntan los tramos oscuros separados por 10 px o menos.
+        const fondoLinea = (d, x) => { let y = 880; while (y < 915 && !osc(d, x, y)) y++; if (y >= 915) return null; let b = y; for (;;) { while (b + 1 < 1150 && osc(d, x, b + 1)) b++; let k = b + 1; while (k <= b + 10 && !osc(d, x, k)) k++; if (k <= b + 10) b = k; else break; } return { ini: y, fin: b }; };
+        const esp = [];
+        for (let x = 1100; x <= 1360; x++) { const r = fondoLinea(dor, x); esp.push(r && r.fin - r.ini <= 40 ? r.fin : null); }
+        // Donde la linea del original se junta con el iris no se sabe donde acaba la linea: lo
+        // aceptable es quedar entre los bordes de las columnas limpias mas cercanas a cada lado.
+        const banda = esp.map((v, i) => { if (v !== null) return [v, v]; let a = i - 1; while (a >= 0 && esp[a] === null) a--; let b = i + 1; while (b < esp.length && esp[b] === null) b++; const vs = [a >= 0 ? esp[a] : null, b < esp.length ? esp[b] : null].filter((z) => z !== null); return vs.length ? [Math.min(...vs), Math.max(...vs)] : null; });
+        let canto = 0, mordida = 0, cantoX = null, mordidaX = null;
+        for (let x = 1100; x <= 1360; x++) { const r = fondoLinea(dc, x), e = banda[x - 1100]; if (!r || !e) continue; if (r.fin - e[1] > canto) { canto = r.fin - e[1]; cantoX = x; } if (e[0] - r.fin > mordida) { mordida = e[0] - r.fin; mordidaX = x; } }
+        return { restos, manchas: comps.length - 1, cantoMax: +canto.toFixed(1), cantoEnX: cantoX, mordidaMax: +mordida.toFixed(1), mordidaEnX: mordidaX };
+      }, { c: cerrado.toString("base64"), o: orig.toString("base64"), umbral: tema === "oscuro" ? 60 : 170 });
+      b2[tema].tCerrado = tC;
+      b2[tema].pasa = b2[tema].restos <= 8 && b2[tema].cantoMax <= 5 && b2[tema].mordidaMax <= 5;
+    }
+    b2.pasa = b2.oscuro.pasa && b2.claro.pasa;
+    const okB3 = (r) => !r.error && r.intermediosCierre >= 2 && r.intermediosApertura >= 2 && r.cierreMs >= 100 && r.cierreMs <= 200 && r.aperturaMs >= 100 && r.aperturaMs <= 200 && r.sinSaltos;
+    b3.pasa = ["oscuro", "claro"].every((t) => b3[t].every(okB3));
+    // B4: cada instante "fuera del parpadeo" queda a 150 ms o mas de los dos parpadeos medidos.
+    const tramos = b3.oscuro.filter((r) => !r.error).map((r) => [r.empieza - 0.025, r.termina + 0.025]);
+    b4.margenes = VERSION.fueraDeParpadeo.map((t) => ({ t, margenMs: Math.round(Math.min(...tramos.map(([a, b]) => (t < a ? a - t : t > b ? t - b : 0))) * 1000) }));
+    b4.pasa = tramos.length === 2 && b4.margenes.every((x) => x.margenMs >= 150) && b4.oscuroRepetible && b4.claroRepetible;
+  }
+  sv.resumen = { M1: sv.M1_M3 ? sv.M1_M3.M1pasa : null, M2: sv.M2 ? sv.M2.pasa : null, M3: sv.M1_M3 ? sv.M1_M3.M3pasa : null, B1: sv.B1.pasa, B2: sv.B2.pasa, B3: sv.B3.pasa, B4: sv.B4.pasa };
 
   await nav.close();
   fs.writeFileSync(path.join(SALIDA, "medicion.json"), JSON.stringify(res, null, 2) + "\n");

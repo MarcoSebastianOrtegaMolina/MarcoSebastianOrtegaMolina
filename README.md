@@ -13,6 +13,14 @@ Control: el mismo SVG pidiendo fuentes que no existen. Tiene que verse distinto.
 
 <img alt="exp1-control" width="100%" src="piloto/assets/exp1-control-v1.svg">
 
+Controles por fuente: a cada uno le falta una sola de las tres fuentes.
+
+<img alt="exp1-sin-sg" width="100%" src="piloto/assets/exp1-sin-sg-v2.svg">
+
+<img alt="exp1-sin-inter" width="100%" src="piloto/assets/exp1-sin-inter-v2.svg">
+
+<img alt="exp1-sin-mono" width="100%" src="piloto/assets/exp1-sin-mono-v2.svg">
+
 ## Experimento 2: pestañas como imágenes pegadas
 
 Seis pestañas, cada una con su enlace, y debajo el cuerpo de la ventana. Los enlaces son provisionales.
@@ -40,6 +48,10 @@ Seis pestañas, cada una con su enlace, y debajo el cuerpo de la ventana. Los en
 
 <p><a href="https://www.kairomx.tech/cv/#home"><img alt="exp2e-t1" width="13.9480%" align="top" src="piloto/assets/exp2-alta1-v1.svg"></a><a href="https://www.kairomx.tech/cv/#projects"><img alt="exp2e-t2" width="17.4941%" align="top" src="piloto/assets/exp2-alta2-v1.svg"></a><a href="https://www.kairomx.tech/cv/#stack"><img alt="exp2e-t3" width="14.1844%" align="top" src="piloto/assets/exp2-alta3-v1.svg"></a><a href="https://www.kairomx.tech/cv/#experience"><img alt="exp2e-t4" width="20.0946%" align="top" src="piloto/assets/exp2-alta4-v1.svg"></a><a href="https://www.kairomx.tech/cv/#about"><img alt="exp2e-t5" width="15.1300%" align="top" src="piloto/assets/exp2-alta5-v1.svg"></a><a href="https://www.kairomx.tech/cv/#contact"><img alt="exp2e-t6" width="19.1489%" align="top" src="piloto/assets/exp2-alta6-v1.svg"></a><br><img alt="exp2e-cuerpo" width="100%" align="top" src="piloto/assets/exp2-cuerpo-v1.svg"></p>
 
+### 2f. Como 2e, cada pieza en un picture con su variante de tema, y fila de 84 de alto
+
+<p><a href="https://www.kairomx.tech/cv/#home"><picture><source media="(prefers-color-scheme: dark)" srcset="piloto/assets/exp2-f-oscuro1-v2.svg"><img alt="exp2f-t1" width="13.9480%" align="top" src="piloto/assets/exp2-f-claro1-v2.svg"></picture></a><a href="https://www.kairomx.tech/cv/#projects"><picture><source media="(prefers-color-scheme: dark)" srcset="piloto/assets/exp2-f-oscuro2-v2.svg"><img alt="exp2f-t2" width="17.4941%" align="top" src="piloto/assets/exp2-f-claro2-v2.svg"></picture></a><a href="https://www.kairomx.tech/cv/#stack"><picture><source media="(prefers-color-scheme: dark)" srcset="piloto/assets/exp2-f-oscuro3-v2.svg"><img alt="exp2f-t3" width="14.1844%" align="top" src="piloto/assets/exp2-f-claro3-v2.svg"></picture></a><a href="https://www.kairomx.tech/cv/#experience"><picture><source media="(prefers-color-scheme: dark)" srcset="piloto/assets/exp2-f-oscuro4-v2.svg"><img alt="exp2f-t4" width="20.0946%" align="top" src="piloto/assets/exp2-f-claro4-v2.svg"></picture></a><a href="https://www.kairomx.tech/cv/#about"><picture><source media="(prefers-color-scheme: dark)" srcset="piloto/assets/exp2-f-oscuro5-v2.svg"><img alt="exp2f-t5" width="15.1300%" align="top" src="piloto/assets/exp2-f-claro5-v2.svg"></picture></a><a href="https://www.kairomx.tech/cv/#contact"><picture><source media="(prefers-color-scheme: dark)" srcset="piloto/assets/exp2-f-oscuro6-v2.svg"><img alt="exp2f-t6" width="19.1489%" align="top" src="piloto/assets/exp2-f-claro6-v2.svg"></picture></a><br><picture><source media="(prefers-color-scheme: dark)" srcset="piloto/assets/exp2-f-cuerpo-oscuro-v2.svg"><img alt="exp2f-cuerpo" width="100%" align="top" src="piloto/assets/exp2-f-cuerpo-claro-v2.svg"></picture></p>
+
 ## Experimento 3: tema claro y oscuro
 
 <picture>
@@ -49,8 +61,12 @@ Seis pestañas, cada una con su enlace, y debajo el cuerpo de la ventana. Los en
 
 ## Experimento 4: avatar animado
 
-Entra armándose con cuadritos, parpadea y mira a los lados. Con «reducir movimiento» se carga la versión quieta.
+Entra armándose con cuadritos, parpadea y mira a los lados. Un solo picture con cuatro fuentes:
+tema oscuro o claro, con o sin «reducir movimiento» (la versión quieta).
 
-<picture><source media="(prefers-reduced-motion: reduce)" srcset="piloto/assets/exp4-avatar-oscuro-quieto-v1.svg"><img alt="exp4-avatar-oscuro" width="400" src="piloto/assets/exp4-avatar-oscuro-v1.svg"></picture>
-
-<picture><source media="(prefers-reduced-motion: reduce)" srcset="piloto/assets/exp4-avatar-claro-quieto-v1.svg"><img alt="exp4-avatar-claro" width="400" src="piloto/assets/exp4-avatar-claro-v1.svg"></picture>
+<picture>
+<source media="(prefers-color-scheme: dark) and (prefers-reduced-motion: reduce)" srcset="piloto/assets/exp4-avatar-oscuro-quieto-v2.svg">
+<source media="(prefers-color-scheme: dark)" srcset="piloto/assets/exp4-avatar-oscuro-v2.svg">
+<source media="(prefers-reduced-motion: reduce)" srcset="piloto/assets/exp4-avatar-claro-quieto-v2.svg">
+<img alt="exp4-avatar" width="400" src="piloto/assets/exp4-avatar-claro-v2.svg">
+</picture>
