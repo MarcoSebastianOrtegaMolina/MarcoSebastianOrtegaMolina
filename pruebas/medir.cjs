@@ -1,30 +1,37 @@
 // Measures the header as GitHub shows it (and, where a reference is needed, locally) with Playwright.
-//   NODE_PATH=<folder with playwright> node pruebas/medir.cjs <output-folder> [--ref readme-nuevo] [--skip-sweep]
+//   NODE_PATH=<folder with playwright> node pruebas/medir.cjs <output-folder> [options]
+//     --ref BRANCH_OR_COMMIT   page to measure (default readme-nuevo)
+//     --root FOLDER            checkout whose generator, README and data match that ref (default: this one)
+//     --only 1,4,5g,...        run only these checks
+//     --quick-sweep            sweep only the dark theme at 1x
+//     --sketch PNG             sketch image for the side-by-side picture (check 10)
 // Writes medicion.json and screenshots into <output-folder>. Checks:
-//   4 seams: no gap or dropped piece from 320 to 1400 px, dark and light, 1x and 2x
-//   5 every <picture> loads the right file for each theme, width and reduced-motion setting
-//   6 avatar: animation runs; final frame vs the original drawing; with reduced motion the first frame is final
-//   7 on-screen text sizes at 1280 and 390 px
-//   8 contrast measured in the screenshots, both themes
-//   9 every README link answers 200 (curl -I)
-//  10 the sketch and the desktop dark header side by side
+//   1  smallest text on screen at every viewport of the sweep (11 px from 360, 10 px below)
+//   4  seams: no gap or dropped piece at every viewport of the sweep, dark and light, 1x and 2x
+//   5  every <picture> loads the right file for each composition, theme and reduced-motion setting
+//   5g light theme: the eyelids leave the window's grid untouched while the eye is closed (local)
+//   6  avatar: animation runs; final frame vs the original drawing; with reduced motion the first frame is final
+//   7  on-screen text sizes at a few widths (report)
+//   8  contrast measured in the screenshots, both themes
+//   9  every README link answers 200 (curl -I)
+//  10  the sketch and the desktop dark header side by side
 const fs = require("fs");
 const path = require("path");
 const { execFileSync } = require("child_process");
 const { pathToFileURL } = require("url");
 const { chromium } = require("playwright");
 
-const ROOT = path.resolve(__dirname, "..");
+const arg = (name) => { const i = process.argv.indexOf(name); return i > 0 ? process.argv[i + 1] : null; };
+const HERE = path.resolve(__dirname, "..");
+const ROOT = path.resolve(arg("--root") || HERE);
 const OUT = path.resolve(process.argv[2] || "");
-if (!process.argv[2]) { console.error("usage: node pruebas/medir.cjs <output-folder> [--ref BRANCH] [--skip-sweep]"); process.exit(2); }
-const iRef = process.argv.indexOf("--ref");
-const REF = iRef > 0 ? process.argv[iRef + 1] : "readme-nuevo";
-const SKIP_SWEEP = process.argv.includes("--skip-sweep");
-const iOnly = process.argv.indexOf("--only"); // e.g. --only 6,8 runs just those checks
-const ONLY = iOnly > 0 ? process.argv[iOnly + 1].split(",") : null;
+if (!process.argv[2] || process.argv[2].startsWith("--")) { console.error("usage: node pruebas/medir.cjs <output-folder> [--ref REF] [--root DIR] [--only LIST] [--quick-sweep] [--sketch PNG]"); process.exit(2); }
+const REF = arg("--ref") || "readme-nuevo";
+const ONLY = arg("--only") ? arg("--only").split(",") : null;
 const want = (k) => !ONLY || ONLY.includes(k);
+const QUICK = process.argv.includes("--quick-sweep");
+const SKETCH = arg("--sketch");
 const URL_GH = `https://github.com/MarcoSebastianOrtegaMolina/MarcoSebastianOrtegaMolina/tree/${REF}`;
-const SKETCH = path.join(ROOT, "_trabajo/referencia/boceto-3-portfolio-exe.png"); // optional, not versioned
 const THRESHOLD = 32; // a pixel differs if a channel changes by more than 32/255
 fs.mkdirSync(OUT, { recursive: true });
 const save = (name, buf) => fs.writeFileSync(path.join(OUT, name), buf);
@@ -35,22 +42,27 @@ const fileUrl = (p) => pathToFileURL(p).href;
 const readme = fs.readFileSync(path.join(ROOT, "README.md"), "utf8");
 const ROWS = readme.match(/<p>(.*)<\/p>/s)[1].split("<br>").map((r) => (r.match(/<picture>/g) || []).length);
 const HREFS = [...new Set([...readme.matchAll(/href="([^"]*)"/g)].map((m) => m[1].replace(/&amp;/g, "&")))];
-const PICS = 'article.markdown-body picture > img';
+const PICS = "article.markdown-body picture > img";
 
 async function openGH(nav, { width, theme = "dark", dpr = 1, reduce = false }) {
   const ctx = await nav.newContext({ viewport: { width, height: 1000 }, deviceScaleFactor: dpr, colorScheme: theme, reducedMotion: reduce ? "reduce" : "no-preference", locale: "en-US" });
   const page = await ctx.newPage();
   await page.goto(URL_GH, { waitUntil: "domcontentloaded", timeout: 90000 });
   await page.waitForSelector(PICS, { timeout: 90000 });
-  await waitImages(page, width <= 767 ? "-mob-" : "-desk-");
+  await waitImages(page);
   return { ctx, page };
 }
-async function waitImages(page, layout) {
+// Every image shows the file its <picture> selects for the current viewport and preferences.
+async function waitImages(page) {
   await page.evaluate(() => document.querySelectorAll("article.markdown-body img").forEach((i) => i.removeAttribute("loading")));
-  await page.waitForFunction(({ sel, layout, n }) => {
+  await page.waitForFunction(({ sel, n }) => {
     const imgs = [...document.querySelectorAll(sel)];
-    return imgs.length === n && imgs.every((i) => i.complete && i.naturalWidth > 0 && i.currentSrc.includes(layout));
-  }, { sel: PICS, layout, n: ROWS.reduce((a, b) => a + b, 0) }, { timeout: 60000, polling: 50 });
+    return imgs.length === n && imgs.every((i) => {
+      const s = [...i.parentElement.querySelectorAll("source")].find((x) => matchMedia(x.media).matches);
+      const wanted = (s ? s.getAttribute("srcset") : i.getAttribute("src")).split("?")[0].split("/").pop();
+      return i.complete && i.naturalWidth > 0 && decodeURIComponent(i.currentSrc.split("?")[0]).endsWith(decodeURIComponent(wanted));
+    });
+  }, { sel: PICS, n: ROWS.reduce((a, b) => a + b, 0) }, { timeout: 60000, polling: 50 });
 }
 async function headerBox(page) {
   return page.evaluate((sel) => {
@@ -60,8 +72,8 @@ async function headerBox(page) {
   }, PICS);
 }
 
-// Pixel comparison of two PNGs in a canvas (inside a blank page): % of pixels whose largest channel
-// difference is over THRESHOLD, optionally inside a rectangle [x, y, w, h] in image pixels.
+// Pixel comparison of two PNGs in a canvas: % of pixels whose largest channel difference is over
+// THRESHOLD, optionally inside a rectangle [x, y, w, h] in image pixels.
 async function compare(lab, a, b, box = null) {
   return lab.evaluate(async ({ a, b, T, box }) => {
     const load = (s) => new Promise((ok, ko) => { const i = new Image(); i.onload = () => ok(i); i.onerror = ko; i.src = "data:image/png;base64," + s; });
@@ -77,6 +89,27 @@ async function compare(lab, a, b, box = null) {
     }
     return { size: [w, h], pct: +(100 * n / Math.max(1, tot)).toFixed(3) };
   }, { a: a.toString("base64"), b: b.toString("base64"), T: THRESHOLD, box });
+}
+
+// Grid pixels of the still frame (a faint neutral tint of the background) that the other frame
+// turns back into plain background.
+async function gridErased(lab, still, closed, bg) {
+  return lab.evaluate(async ({ a, b, bg }) => {
+    const load = (s) => new Promise((ok) => { const i = new Image(); i.onload = () => ok(i); i.src = "data:image/png;base64," + s; });
+    const [ia, ib] = await Promise.all([load(a), load(b)]);
+    const w = Math.min(ia.width, ib.width), h = Math.min(ia.height, ib.height);
+    const px = (im) => { const c = document.createElement("canvas"); c.width = w; c.height = h; const x = c.getContext("2d"); x.drawImage(im, 0, 0); return x.getImageData(0, 0, w, h).data; };
+    const da = px(ia), db = px(ib);
+    let grid = 0, erased = 0;
+    for (let i = 0; i < da.length; i += 4) {
+      const d = Math.max(Math.abs(da[i] - bg[0]), Math.abs(da[i + 1] - bg[1]), Math.abs(da[i + 2] - bg[2]));
+      const spread = Math.max(da[i], da[i + 1], da[i + 2]) - Math.min(da[i], da[i + 1], da[i + 2]);
+      if (d < 3 || d > 25 || spread > 20) continue;
+      grid++;
+      if (Math.max(Math.abs(db[i] - bg[0]), Math.abs(db[i + 1] - bg[1]), Math.abs(db[i + 2] - bg[2])) <= 2) erased++;
+    }
+    return { gridPixels: grid, erased };
+  }, { a: still.toString("base64"), b: closed.toString("base64"), bg });
 }
 
 // Contrast of one text run measured in a screenshot: background = most common color in the run's box,
@@ -124,31 +157,57 @@ async function shotAt(page, el, t) {
 }
 
 (async () => {
+  const C = await import(pathToFileURL(path.join(HERE, "generador/constantes.mjs")).href);
   const { buildFromDisk } = await import(pathToFileURL(path.join(ROOT, "generador/generar.mjs")).href);
   const built = buildFromDisk();
   const fileByBase = new Map(built.files.map((f) => [f.base, f]));
+  const minSize = (f) => Math.min(...f.texts.map((t) => t.size));
   const nav = await chromium.launch({ headless: true });
   const lab = await (await nav.newContext()).newPage();
   await lab.goto("about:blank");
-  const res = { date: new Date().toISOString(), url: URL_GH, chromium: nav.version(), rows: ROWS };
+  const res = { date: new Date().toISOString(), url: URL_GH, root: ROOT, chromium: nav.version(), rows: ROWS };
   const nPics = ROWS.reduce((a, b) => a + b, 0);
   const heroIndex = ROWS[0], statusIndex = nPics - 1;
+  const BG = { dark: [10, 10, 10], light: [244, 239, 230] };
+
+  // ---------- 5g. light eyelids keep the grid (local render with the animation clock fixed) ----------
+  if (want("5g")) {
+    const cases = {};
+    for (const f of built.files.filter((f) => f.row === "hero" && f.motion === "animated")) {
+      const still = built.files.find((g) => g.base === f.base + "-still");
+      const page = await (await nav.newContext({ viewport: { width: Math.ceil(f.viewW) + 20, height: Math.ceil(f.viewH) + 20 }, deviceScaleFactor: 2 })).newPage();
+      const shot = async (svg, t) => {
+        await page.setContent(`<!doctype html><style>body{margin:0}svg{display:block}</style>${svg}`);
+        if (t !== null) await page.evaluate((t) => document.getAnimations().forEach((a) => { a.pause(); a.currentTime = t; }), t);
+        await page.waitForTimeout(100);
+        return page.locator("svg").first().screenshot();
+      };
+      const closed = await shot(f.content, 3970); // first blink: closed from 3.94 to 4.00 s
+      const ref = await shot(still.content, null);
+      save(`blink-closed-${f.base}.png`, closed);
+      cases[f.base] = await gridErased(lab, ref, closed, BG[f.theme]);
+      await page.context().close();
+    }
+    const light = Object.entries(cases).filter(([k]) => k.includes("-light"));
+    res.p5g = { cases, pass: light.length > 0 && light.every(([, c]) => c.erased <= 10) };
+    console.log("5g grid under the eyelids:", res.p5g.pass, JSON.stringify(cases));
+  }
 
   // ---------- 5. which file each <picture> loads ----------
   if (want("5")) {
     const cases = [];
-    for (const width of [1280, 390]) for (const theme of ["dark", "light"]) for (const reduce of [false, true]) {
+    for (const layout of C.LAYOUT_ORDER) for (const theme of ["dark", "light"]) for (const reduce of [false, true]) {
+      const width = { mob: 390, tab: 900, desk: 1280 }[layout];
+      if (C.layoutFor(width) !== layout) throw new Error(`viewport ${width} is not in the ${layout} layout`);
       const { ctx, page } = await openGH(nav, { width, theme, reduce });
       const got = await page.evaluate((sel) => [...document.querySelectorAll(sel)].map((i) => ({ src: i.currentSrc, media: [...i.parentElement.querySelectorAll("source")].map((s) => s.getAttribute("media")) })), PICS);
-      const layout = width <= 767 ? "mob" : "desk";
       const wrong = [];
       got.forEach((g, i) => {
-        const b = baseOf(g.src);
         const animated = i === heroIndex || i === statusIndex;
-        const want = new RegExp(`-${layout}-${theme}${animated && reduce ? "-still" : ""}$`);
-        if (!want.test(b)) wrong.push(`${b} (want *-${layout}-${theme}${animated && reduce ? "-still" : ""})`);
+        const end = `-${layout}-${theme}${animated && reduce ? "-still" : ""}`;
+        if (!baseOf(g.src).endsWith(end)) wrong.push(`${baseOf(g.src)} (want *${end})`);
       });
-      cases.push({ width, theme, reduce, pictures: got.length, sourcesKept: got.every((g) => g.media.every(Boolean)), wrong });
+      cases.push({ width, layout, theme, reduce, pictures: got.length, sourcesKept: got.every((g) => g.media.every(Boolean)), wrong });
       await ctx.close();
     }
     res.p5 = { cases, pass: cases.every((c) => c.pictures === nPics && c.sourcesKept && !c.wrong.length) };
@@ -158,28 +217,27 @@ async function shotAt(page, el, t) {
   // ---------- 7 and 8: text sizes and contrast, plus screenshots for review ----------
   if (want("7") || want("8")) {
     const sizes = [], contrasts = [];
-    for (const width of [1280, 390]) for (const theme of ["dark", "light"]) {
+    for (const width of [1280, 1212, 900, 768, 390, 360]) for (const theme of ["dark", "light"]) {
       const { ctx, page } = await openGH(nav, { width, theme, dpr: 2 });
-      // SVG animations start when the image is first painted: bring the header into view, then wait
-      // until the avatar has finished building up.
-      await page.evaluate((sel) => document.querySelectorAll(sel)[0].scrollIntoView({ block: "start" }), PICS);
-      await page.waitForTimeout(3200);
+      await page.evaluate((sel) => document.querySelectorAll(sel)[0].scrollIntoView({ block: "start", behavior: "instant" }), PICS);
+      await page.waitForTimeout(3200); // SVG animations start when first painted; wait for the build-up
       const box = await headerBox(page);
       save(`gh-${width}-${theme}.png`, await page.screenshot({ fullPage: true, clip: { x: box.x - 6, y: box.y - 6, width: box.width + 12, height: box.height + 12 } }));
-      // Each image is scrolled to the middle of the viewport (clear of GitHub's sticky bars) and the
-      // viewport is captured; full-page captures shift GitHub's layout by a few pixels.
+      const measureContrast = [1280, 900, 390].includes(width);
       const count = await page.evaluate((sel) => document.querySelectorAll(sel).length, PICS);
       for (let k = 0; k < count; k++) {
+        // Scroll the image to the middle (clear of GitHub's sticky bars), capture once the scroll has
+        // settled, then read its position.
         await page.evaluate(({ sel, k }) => document.querySelectorAll(sel)[k].scrollIntoView({ block: "center", behavior: "instant" }), { sel: PICS, k });
-        await page.waitForTimeout(300);
-        const full = await page.screenshot();
+        await page.waitForTimeout(measureContrast ? 300 : 0);
+        const full = measureContrast ? await page.screenshot() : null;
         const info = await page.evaluate(({ sel, k }) => { const i = document.querySelectorAll(sel)[k]; const b = i.getBoundingClientRect(); return { src: i.currentSrc, w: b.width, x: b.left, y: b.top }; }, { sel: PICS, k });
         const f = fileByBase.get(baseOf(info.src));
         if (!f) { sizes.push({ width, theme, error: "unknown file " + baseOf(info.src) }); continue; }
         const scale = info.w / f.viewW;
-
         for (const t of f.texts) {
           sizes.push({ width, theme, file: f.base, text: t.label, px: r3(t.size * scale) });
+          if (!measureContrast) continue;
           for (const run of t.runs) {
             if (run.x1 - run.x0 < 0.5 * run.full) continue; // a run cut by the piece edge is measured in the piece that holds most of it
             const b = [(info.x + (run.x0 - f.viewX) * scale) * 2, (info.y + t.y0 * scale) * 2, (run.x1 - run.x0) * scale * 2, (t.y1 - t.y0) * scale * 2];
@@ -192,22 +250,21 @@ async function shotAt(page, el, t) {
       }
       await ctx.close();
     }
-    const phone = sizes.filter((s) => s.width === 390 && s.px !== undefined);
-    const desk = sizes.filter((s) => s.width === 1280 && s.px !== undefined);
-    res.p7 = { minPhone: Math.min(...phone.map((s) => s.px)), minDesk: Math.min(...desk.map((s) => s.px)), sizes, pass: phone.length > 0 && phone.every((s) => s.px >= 11) && !sizes.some((s) => s.error) };
+    const byWidth = {};
+    for (const s of sizes.filter((s) => s.px !== undefined)) byWidth[s.width] = Math.min(byWidth[s.width] ?? Infinity, s.px);
+    res.p7 = { minByWidth: byWidth, sizes, pass: Object.entries(byWidth).every(([w, px]) => px >= C.minTextPx(+w)) && !sizes.some((s) => s.error) };
     res.p8 = { worst: contrasts.slice().sort((a, b) => (a.ratio / a.need) - (b.ratio / b.need)).slice(0, 5), failures: contrasts.filter((c) => !c.pass), runs: contrasts.length, all: contrasts, pass: contrasts.length > 0 && contrasts.every((c) => c.pass) };
-    console.log("7 sizes:", res.p7.pass, "phone min", res.p7.minPhone, "desk min", res.p7.minDesk);
+    console.log("7 sizes:", res.p7.pass, JSON.stringify(byWidth));
     console.log("8 contrast:", res.p8.pass, "runs", contrasts.length, "worst", JSON.stringify(res.p8.worst.slice(0, 2)));
   }
 
   // ---------- 6. avatar ----------
   if (want("6")) {
     const out = {};
-    for (const [width, theme] of [[1280, "dark"], [1280, "light"], [390, "dark"], [390, "light"]]) {
-      const layout = width <= 767 ? "mob" : "desk";
+    for (const [width, theme] of [[1280, "dark"], [1280, "light"], [900, "dark"], [900, "light"], [390, "dark"], [390, "light"]]) {
+      const layout = C.layoutFor(width);
       const f = fileByBase.get(`hero-${layout}-${theme}`);
-      const lo = built.layouts[`${layout}-${theme}`];
-      const av = lo.rows[1].avatar;
+      const av = built.layouts[`${layout}-${theme}`].rows[1].avatar;
       // Animated: frames at 0.4 s and 3.0 s after load (the eyes do not move before 3.76 s).
       const a = await openGH(nav, { width, theme, dpr: 2 });
       const el = (await a.page.$$(PICS))[heroIndex];
@@ -260,18 +317,23 @@ async function shotAt(page, el, t) {
     console.log("6 avatar:", res.p6.pass, JSON.stringify(out));
   }
 
-  // ---------- 4. seams ----------
-  if (!SKIP_SWEEP && want("4")) {
+  // ---------- 4 and 1. seams and smallest text over the whole sweep ----------
+  if (want("4") || want("1")) {
     const combos = {};
-    for (const theme of ["dark", "light"]) for (const dpr of [1, 2]) {
-      const { ctx, page } = await openGH(nav, { width: 1400, theme, dpr });
+    const legible = { fails: [], worst: null };
+    const edges = C.LAYOUT_ORDER.map((l) => C.LAYOUTS[l].lastViewport).filter(Number.isFinite);
+    const shotsAt = [320, 360, 390, 768, 900, 1280, ...edges, ...edges.map((e) => e + 1)];
+    const runs = QUICK ? [["dark", 1]] : [["dark", 1], ["dark", 2], ["light", 1], ["light", 2]];
+    for (const [theme, dpr] of runs) {
+      const { ctx, page } = await openGH(nav, { width: C.SWEEP.to, theme, dpr });
       const fails = [];
       let worst = { gap: 0 };
-      for (let w = 1400; w >= 320; w--) {
+      for (let w = C.SWEEP.to; w >= C.SWEEP.from; w--) {
         await page.setViewportSize({ width: w, height: 1000 });
-        await waitImages(page, w <= 767 ? "-mob-" : "-desk-");
+        await waitImages(page);
         const m = await page.evaluate(({ sel, rows }) => {
-          const r = [...document.querySelectorAll(sel)].map((i) => i.getBoundingClientRect());
+          const imgs = [...document.querySelectorAll(sel)];
+          const r = imgs.map((i) => i.getBoundingClientRect());
           let k = 0, maxH = 0, maxV = 0, drops = 0, maxEdge = 0;
           const rowsR = rows.map((n) => r.slice(k, (k += n)));
           const right = rowsR[1][0].right, left = rowsR[1][0].left;
@@ -280,21 +342,34 @@ async function shotAt(page, el, t) {
             maxEdge = Math.max(maxEdge, Math.abs(row[row.length - 1].right - right), Math.abs(row[0].left - left));
             if (j) maxV = Math.max(maxV, Math.abs(Math.min(...row.map((b) => b.top)) - Math.max(...rowsR[j - 1].map((b) => b.bottom))));
           });
-          return { maxH, maxV, drops, maxEdge };
+          return { maxH, maxV, drops, maxEdge, imgs: imgs.map((i, n) => [i.currentSrc, r[n].width]), height: Math.max(...r.map((b) => b.bottom)) - Math.min(...r.map((b) => b.top)) };
         }, { sel: PICS, rows: ROWS });
         const gap = Math.max(m.maxH, m.maxV, m.maxEdge);
-        if (gap > worst.gap) worst = { w, ...m, gap };
-        if (gap > 0.5 || m.drops) fails.push({ w, ...m });
-        if ([320, 390, 767, 768, 1012, 1280].includes(w) && dpr === 2) {
+        if (gap > worst.gap) worst = { w, maxH: m.maxH, maxV: m.maxV, maxEdge: m.maxEdge, gap };
+        if (gap > 0.5 || m.drops) fails.push({ w, maxH: m.maxH, maxV: m.maxV, maxEdge: m.maxEdge, drops: m.drops });
+        // Smallest text on screen at this viewport, from each image's rendered width.
+        let px = Infinity, at = null;
+        for (const [src, width] of m.imgs) {
+          const f = fileByBase.get(baseOf(src));
+          if (!f || !f.texts.length) continue;
+          const p = minSize(f) * width / f.viewW;
+          if (p < px) { px = p; at = f.base; }
+        }
+        const need = C.minTextPx(w);
+        if (!legible.worst || px - need < legible.worst.px - legible.worst.need) legible.worst = { w, px: r3(px), need, file: at, ratio: r3(m.height / m.imgs[heroIndex][1]) };
+        if (px < need) legible.fails.push({ w, px: r3(px), need, file: at });
+        if (shotsAt.includes(w) && dpr === 2) {
           const box = await headerBox(page);
           save(`seam-${w}-${theme}.png`, await page.screenshot({ fullPage: true, clip: { x: box.x - 4, y: box.y - 4, width: box.width + 8, height: box.height + 8 } }));
         }
       }
-      combos[`${theme}-dpr${dpr}`] = { widths: 1081, fails: fails.length, firstFails: fails.slice(0, 5), worst };
+      combos[`${theme}-dpr${dpr}`] = { widths: C.SWEEP.to - C.SWEEP.from + 1, fails: fails.length, firstFails: fails.slice(0, 5), worst };
       await ctx.close();
     }
-    res.p4 = { combos, pass: Object.values(combos).every((c) => !c.fails) };
-    console.log("4 seams:", res.p4.pass, JSON.stringify(combos));
+    if (want("4")) res.p4 = { combos, quick: QUICK, pass: Object.values(combos).every((c) => !c.fails) };
+    if (want("1")) res.p1 = { fails: legible.fails.length, firstFails: legible.fails.slice(0, 8), worst: legible.worst, pass: !legible.fails.length };
+    console.log("4 seams:", res.p4 ? res.p4.pass : "-", JSON.stringify(combos));
+    console.log("1 smallest text:", res.p1 ? res.p1.pass : "-", JSON.stringify(res.p1 || {}));
   }
 
   // ---------- 9. links ----------
@@ -309,12 +384,12 @@ async function shotAt(page, el, t) {
   }
 
   // ---------- 10. sketch and header side by side ----------
-  if (want("10") && fs.existsSync(SKETCH) && fs.existsSync(path.join(OUT, "gh-1280-dark.png"))) {
+  if (want("10") && SKETCH && fs.existsSync(SKETCH) && fs.existsSync(path.join(OUT, "gh-1280-dark.png"))) {
     const page = await (await nav.newContext({ viewport: { width: 1800, height: 700 } })).newPage();
     const b64 = (p) => fs.readFileSync(p).toString("base64");
     // The sketch PNG is at 2x; its window (with shadow) spans x 98-1798 and y 214-1158.
     await page.setContent(`<!doctype html><style>body{margin:0;background:#0d1117;display:flex;gap:24px;padding:16px;font:14px sans-serif;color:#e6edf3}div{width:860px}.c{width:860px;height:530px;overflow:hidden;position:relative}.c img{position:absolute}</style>
-<div>Sketch (boceto 3)<div class="c"><img src="data:image/png;base64,${b64(SKETCH)}" style="width:${1888 / 2 * 860 / 850}px;left:${-98 / 2 * 860 / 850}px;top:${-214 / 2 * 860 / 850}px"></div></div>
+<div>Sketch<div class="c"><img src="data:image/png;base64,${b64(SKETCH)}" style="width:${1888 / 2 * 860 / 850}px;left:${-98 / 2 * 860 / 850}px;top:${-214 / 2 * 860 / 850}px"></div></div>
 <div>Header on github.com, 1280 px, dark<div class="c"><img src="data:image/png;base64,${b64(path.join(OUT, "gh-1280-dark.png"))}" style="width:860px"></div></div>`);
     await page.waitForTimeout(300);
     save("lado-a-lado.png", await page.screenshot({ fullPage: true }));
@@ -322,7 +397,7 @@ async function shotAt(page, el, t) {
   }
 
   await nav.close();
-  res.summary = Object.fromEntries(["p4", "p5", "p6", "p7", "p8", "p9"].map((k) => [k, res[k] ? res[k].pass : "not run"]));
+  res.summary = Object.fromEntries(["p1", "p4", "p5", "p5g", "p6", "p7", "p8", "p9"].map((k) => [k, res[k] ? res[k].pass : "not run"]));
   fs.writeFileSync(path.join(OUT, "medicion.json"), JSON.stringify(res, null, 1));
   console.log("summary", JSON.stringify(res.summary));
 })().catch((e) => { console.error(e); process.exit(1); });
