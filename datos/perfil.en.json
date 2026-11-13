@@ -35,5 +35,33 @@
     ],
     "href": "https://www.kairomx.tech/cv/index.html?lang=en#contacto",
     "alt": "Open to remote opportunities"
-  }
+  },
+  "stack": {
+    "label": "STACK.INI",
+    "href": "https://www.kairomx.tech/cv/index.html?lang=en#stack",
+    "altLead": "Technical stack",
+    "items": [
+      { "id": "typescript", "name": "TypeScript" },
+      { "id": "javascript", "name": "JavaScript" },
+      { "id": "python", "name": "Python" },
+      { "id": "react", "name": "React" },
+      { "id": "react-native", "name": "React Native" },
+      { "id": "nextjs", "name": "Next.js" },
+      { "id": "nodejs", "name": "Node.js" },
+      { "id": "expo", "name": "Expo" },
+      { "id": "supabase", "name": "Supabase" },
+      { "id": "postgresql", "name": "PostgreSQL" },
+      { "id": "tailwindcss", "name": "Tailwind CSS" },
+      { "id": "vercel", "name": "Vercel" },
+      { "id": "git", "name": "Git" },
+      { "id": "docker", "name": "Docker" },
+      { "id": "n8n", "name": "n8n" },
+      { "id": "claude", "name": "Claude" }
+    ]
+  },
+  "projects": [
+    { "slug": "joyeria", "window": "JOYERIA.EXE", "title": "Sales and inventory for a jewelry business", "cat": "Web · PWA", "sub": "Pricing, inventory, sales and a bazaar store", "href": "https://www.kairomx.tech/cv/proyectos/joyeria.html?lang=en", "featured": true },
+    { "slug": "zahori", "window": "ZAHORI.PY", "title": "Proyecto Zahorí", "cat": "ML · AI", "sub": "AI water-leak detection", "href": "https://www.kairomx.tech/cv/proyectos/zahori.html?lang=en", "featured": true },
+    { "slug": "conocimiento", "window": "CONOCIMIENTO.MD", "title": "Knowledge management with AI", "cat": "AI · Desktop", "sub": "Personal AI assistant for an executive", "href": "https://www.kairomx.tech/cv/proyectos/conocimiento.html?lang=en", "featured": true }
+  ]
 }

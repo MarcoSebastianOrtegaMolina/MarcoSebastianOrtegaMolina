@@ -39,20 +39,20 @@ const SPEC = {
       titleSize: 27, titleLS: -0.81, titleGap: 38, titleLineGap: 29,
       pitchSize: 12.4, pitchGap: 28, pitchLH: 18.5, pitchMax: 1000, pitchLines: 4,
     },
-    buttons: { style: "stack1", h: 67, bh: 50, L: 22, gap: 18, size: 11.2, ls: 0.45, icon: 13, iconGap: 6, lh: 13 },
+    buttons: { style: "stack2", h: 75, bh: 58, L: 22, gap: 18, size: 11.2, ls: 0.45, icon: 13, iconGap: 6, lh: 14, minSide: 8 },
     status: { winBottom: 40, base: 21, size: 11.2, left: 22 },
   },
   mob: {
     sx: 4, sy: 5, titleH: 32, tabsH: 36, sq: 9, padL: 10, titleFont: 12.8, titleLS: 0.38, titleGap: 8,
     ctlW: 15, ctlH: 13, ctlGap: 4, ctlPad: 8, ctlIcon: 9,
-    tabFont: 12.8, tabIcon: 0, tabGap: 0, tabPad: 2.5, tabsPadL: 1, icons: false,
+    tabFont: 12.8, tabIcon: 0, tabGap: 0, tabPad: 2.5, tabsPadL: 1, icons: false, tabGrid: 3, gridH: 34,
     hero: {
       kind: "stacked", left: 16, avatar: 236, avatarY: 16, bottom: 26,
       nameSize: 17, nameGap: 32, roleSize: 12.8, roleLS: 1.28, roleGap: 23, roleLH: 18,
       titleSize: 36, titleLS: -1.08, titleGap: 46, titleLineGap: 38,
       pitchSize: 14.5, pitchGap: 36, pitchLH: 22.5, pitchLines: 5,
     },
-    buttons: { style: "stack2", h: 83, bh: 66, L: 10, gap: 14, size: 12.8, ls: 0.3, icon: 14, iconGap: 7, lh: 15 },
+    buttons: { style: "stack2", h: 83, bh: 66, L: 10, gap: 14, size: 12.8, ls: 0.3, icon: 14, iconGap: 7, lh: 15, minSide: 8 },
     status: { winBottom: 44, base: 23, size: 12.8, left: 16 },
   },
 };
@@ -63,6 +63,8 @@ const FONT_SRC = {
   IN: [["inter-latin-var.woff2", "100 900"]],
 };
 const FACE_FILE = { "sg-500": ["SG", 0], "sg-600": ["SG", 0], "mono-400": ["SM", 0], "mono-700": ["SM", 1], "inter-400": ["IN", 0], "inter-600": ["IN", 0] };
+
+export const specOf = (layout) => SPEC[layout];
 
 export function loadSources(dir) {
   const fonts = {};
@@ -81,20 +83,20 @@ const TAB_ICON = { home: "inicio", projects: "code", stack: "cpu", experience: "
 const BUTTON_ICON = { projects: "monitor", contact: "contacto", cv: "descargar" };
 
 // A text that does not fit stops the build with what was measured and what fits.
-function fit(field, layout, width, room) {
+export function fit(field, layout, width, room) {
   if (width > room + 0.01) throw new Error(`${field} measures ${width.toFixed(1)} units in the ${layout} layout; ${room.toFixed(1)} fit`);
 }
 
 // ---------- drawing helpers (all coordinates in the row's own units) ----------
-const rect = (x, y, w, h, fill, extra = "") => `<rect x="${n(x)}" y="${n(y)}" width="${n(w)}" height="${n(h)}" fill="${fill}"${extra}/>`;
-const icon = (src, name, x, y, size, fill) => `<g transform="translate(${n(x)} ${n(y)}) scale(${n(size / 24)})" fill="${fill}">${src.icons[name].map((d) => `<path d="${d}"/>`).join("")}</g>`;
+export const rect = (x, y, w, h, fill, extra = "") => `<rect x="${n(x)}" y="${n(y)}" width="${n(w)}" height="${n(h)}" fill="${fill}"${extra}/>`;
+export const icon = (src, name, x, y, size, fill) => `<g transform="translate(${n(x)} ${n(y)}) scale(${n(size / 24)})" fill="${fill}">${src.icons[name].map((d) => `<path d="${d}"/>`).join("")}</g>`;
 // Bevel of a raised control: light line top and left, dark line bottom and right, 1 unit inside.
-const bevel = (x, y, w, h, hi, lo) => rect(x, y, w, 1, hi) + rect(x, y, 1, h, hi) + rect(x, y + h - 1, w, 1, lo) + rect(x + w - 1, y, 1, h, lo);
+export const bevel = (x, y, w, h, hi, lo) => rect(x, y, w, 1, hi) + rect(x, y, 1, h, hi) + rect(x, y + h - 1, w, 1, lo) + rect(x + w - 1, y, 1, h, lo);
 // Baseline that centres a line of text (cap height about 0.7 em) on y.
-const mid = (y, size) => y + size * 0.35;
+export const mid = (y, size) => y + size * 0.35;
 
 // A text item: markup plus what the tests need (extent of each run, size, faces, colors).
-function textItem(x, y, runs, size, opts = {}) {
+export function textItem(x, y, runs, size, opts = {}) {
   const spacing = opts.spacing || 0;
   const width = runs.reduce((s, r) => s + measure(r.text, r.face, size, spacing), 0);
   const x0 = opts.anchor === "middle" ? x - width / 2 : x;
@@ -102,7 +104,7 @@ function textItem(x, y, runs, size, opts = {}) {
   const spans = runs.map((r) => { const w = measure(r.text, r.face, size, spacing); const o = { ...r, x0: at, x1: at + w }; at += w; return o; });
   return { kind: "text", x0, x1: x0 + width, y0: y - size * 0.75, y1: y + size * 0.25, size, runs: spans, label: opts.label || runs.map((r) => r.text).join(""), markup: textEl(x, y, runs, size, opts) };
 }
-const shape = (markup) => ({ kind: "shape", markup });
+export const shape = (markup, x0 = -Infinity, x1 = Infinity) => ({ kind: "shape", markup, x0, x1 });
 const runsWidth = (runs, size, ls = 0) => runs.reduce((s, r) => s + measure(r.text, r.face, size, ls), 0);
 
 // The role on one line, or one line per part (split at " · ") when one line does not fit.
@@ -116,6 +118,9 @@ function roleLines(role, size, ls, room, layout) {
 
 // ---------- shared geometry ----------
 // Width each tab needs in each composition; a piece gets the largest share any composition needs.
+// The phone shows the tabs in a grid (three per line), but its one-line widths still set the
+// proportions of the strips on the wider layouts; when those do not fit in 100 %, they are scaled
+// down together until the six strips fill the width.
 function tabFractions(data) {
   const need = (layout, k) => {
     const spec = SPEC[layout], W = LAYOUTS[layout].width;
@@ -125,13 +130,19 @@ function tabFractions(data) {
     if (k === data.tabs.length - 1) w += 1 + spec.sx + 2;
     return w / W;
   };
-  for (const layout of LAYOUT_ORDER) {
+  const lines = LAYOUT_ORDER.filter((l) => !SPEC[l].tabGrid), grids = LAYOUT_ORDER.filter((l) => SPEC[l].tabGrid);
+  for (const layout of lines) {
     const total = data.tabs.reduce((s, _, k) => s + need(layout, k), 0);
     fit("tabs[*].label (the six labels together)", layout, total * LAYOUTS[layout].width, LAYOUTS[layout].width);
   }
-  const f = data.tabs.map((_, k) => Math.max(...LAYOUT_ORDER.map((l) => need(l, k))));
+  const fixed = data.tabs.map((_, k) => Math.max(...lines.map((l) => need(l, k))));
+  const phone = data.tabs.map((_, k) => Math.max(0, ...grids.map((l) => need(l, k))));
+  const sum = (sc) => fixed.reduce((a, x, k) => a + Math.max(x, sc * phone[k]), 0);
+  let scale = 1;
+  if (sum(1) > 1) { let lo = 0, hi = 1; for (let i = 0; i < 60; i++) { const m = (lo + hi) / 2; if (sum(m) > 1) hi = m; else lo = m; } scale = lo; }
+  const f = fixed.map((x, k) => Math.max(x, scale * phone[k]));
   const total = f.reduce((a, b) => a + b, 0);
-  if (total > 1) throw new Error(`tabs[*].label: the six tabs need ${(total * 100).toFixed(1)} % of the width across the layouts; 100 % fits`);
+  if (total > 1 + 1e-9) throw new Error(`tabs[*].label: the six tabs need ${(total * 100).toFixed(1)} % of the width across the layouts; 100 % fits`);
   // Desktop widths are whole units; the leftover goes to the last tab, where the bar is empty.
   const D = LAYOUTS.desk.width;
   const wd = f.map((x) => Math.ceil(x * D));
@@ -152,7 +163,10 @@ export function buildLayout(data, src, layout, theme) {
 
   // ---------- row 1: title bar and tabs ----------
   {
-    const h = 1 + s.titleH + s.tabsH;
+    // The phone draws the tabs as a grid of s.tabGrid per line: the first line under the title bar,
+    // the rest on a line of their own, each piece a cell of 1/s.tabGrid of the width.
+    const tabsH = s.tabGrid ? s.gridH : s.tabsH;
+    const h = 1 + s.titleH + tabsH;
     const items = [];
     const tbTop = 1, tbMid = tbTop + (s.titleH - 1) / 2;
     items.push(shape(rect(0, 0, win, h, T.bg2) + rect(0, tbTop, win, s.titleH, T.bg3) + rect(0, tbTop + s.titleH - 1, win, 1, line)));
@@ -180,11 +194,26 @@ export function buildLayout(data, src, layout, theme) {
       cx -= s.ctlW + s.ctlGap;
     }
     items.push(shape(ctl.join("")));
-    const tTop = tbTop + s.titleH, tH = s.tabsH - 1;
-    items.push(shape(rect(0, tTop + s.tabsH - 1, win, 1, line)));
+    const tTop = tbTop + s.titleH, tH = tabsH - 1;
+    items.push(shape(rect(0, tTop + tabsH - 1, win, 1, line)));
     const pieces = [];
     let x = 0;
-    data.tabs.forEach((t, k) => {
+    if (s.tabGrid) {
+      const per = s.tabGrid, cw = W / per, hB = s.gridH;
+      const itemsB = [shape(rect(0, 0, win, hB, T.bg2) + sides(hB) + rect(0, hB - 1, win, 1, line))];
+      data.tabs.forEach((t, k) => {
+        const second = k >= per, col = k % per;
+        const into = second ? itemsB : items, top = second ? 0 : tTop;
+        const x0 = col * cw + (col === 0 ? 1 : 0), x1 = col === per - 1 ? win - 1 : (col + 1) * cw;
+        const on = k === 0, face = on ? "sg-600" : "sg-500";
+        fit(`tabs[${k}].label`, layout, measure(t.label, face, s.tabFont) + 2 * s.tabPad, x1 - x0);
+        if (col) into.push(shape(rect(col * cw, top + 8, 1, tH - 16, line)));
+        if (on) into.push(shape(rect(x0, top, x1 - x0, tH, T.bg3) + rect(x0, top + tH - 2, x1 - x0, 2, T.red)));
+        into.push(textItem((x0 + x1) / 2, mid(top + tH / 2, s.tabFont), [{ text: t.label, face, fill: on ? T.fg : T.fg2 }], s.tabFont, { anchor: "middle", label: `tab ${t.label}` }));
+        pieces.push({ id: `tab-${t.id}`, x: col * cw, w: cw, h: second ? hB : h, items: second ? itemsB : items, pct: 100 / per, href: t.href, alt: t.label });
+      });
+      rows.push({ id: "tabs", h: h + hB, items, pieces });
+    } else data.tabs.forEach((t, k) => {
       const w = fracs[k] * W;
       const on = k === 0, last = k === data.tabs.length - 1;
       const face = on ? "sg-600" : "sg-500";
@@ -201,7 +230,7 @@ export function buildLayout(data, src, layout, theme) {
       pieces.push({ id: `tab-${t.id}`, x, w: last ? W - x : w, href: t.href, alt: t.label });
       x += w;
     });
-    rows.push({ id: "tabs", h, items, pieces });
+    if (!s.tabGrid) rows.push({ id: "tabs", h, items, pieces });
   }
 
   // ---------- row 2: hero ----------
@@ -234,8 +263,14 @@ export function buildLayout(data, src, layout, theme) {
     for (const [i, l] of [data.hero.titleLine1, data.hero.titleLine2].entries()) {
       if (i) y += hs.titleLineGap;
       const r = runsTitle(l, i ? T.redInk : T.muted);
-      fit(`hero.titleLine${i + 1}`, layout, runsWidth(r, hs.titleSize, hs.titleLS), room);
-      items.push(textItem(left, y, r, hs.titleSize, { spacing: hs.titleLS, label: `title line ${i + 1}` }));
+      if (runsWidth(r, hs.titleSize, hs.titleLS) <= room) {
+        items.push(textItem(left, y, r, hs.titleSize, { spacing: hs.titleLS, label: `title line ${i + 1}` }));
+        continue;
+      }
+      // Too wide for one line: it breaks between words, never inside one.
+      let parts;
+      try { parts = wrap(r, hs.titleSize, room, hs.titleLS); } catch (e) { throw new Error(`hero.titleLine${i + 1}: ${e.message} in the ${layout} layout`); }
+      parts.forEach((p, j) => { if (j) y += hs.titleLineGap; items.push(textItem(left, y, p.runs, hs.titleSize, { spacing: hs.titleLS, label: `title line ${i + 1}` })); });
     }
     let lines;
     try { lines = wrap(pitchRuns, hs.pitchSize, Math.min(hs.pitchMax || room, room)); } catch (e) { throw new Error(`hero.pitch: ${e.message} in the ${layout} layout`); }
@@ -254,12 +289,40 @@ export function buildLayout(data, src, layout, theme) {
   {
     const b = s.buttons;
     const h = b.h, bh = b.bh;
-    // Equal buttons, each inside its own third: start and end margins mirror each other.
-    const bw = (win - 2 * b.L - 2 * b.gap) / 3;
+    // Label lines: one per button (inline), or a block of two split at the space that balances them
+    // best (stack2), so the three buttons share one structure.
+    const labelLines = data.buttons.map((btn) => {
+      const label = btn.label.toUpperCase();
+      if (b.style !== "stack2") return [label];
+      const words = label.split(" ");
+      let best = null;
+      for (let i = 1; i < words.length; i++) {
+        const pair = [words.slice(0, i).join(" "), words.slice(i).join(" ")];
+        const wmax = Math.max(...pair.map((p) => measure(p, "mono-700", b.size, b.ls)));
+        if (!best || wmax < best.wmax) best = { pair, wmax };
+      }
+      return best ? best.pair : [label];
+    });
+    // Equal buttons, each inside its own third: start and end margins mirror each other. Stacked
+    // labels keep at least b.minSide units on each side; when the longest line needs more, the
+    // buttons widen and the outer margins and gaps shrink in proportion.
+    let L = b.L, gap = b.gap;
+    let bw = (win - 2 * L - 2 * gap) / 3;
+    if (b.style !== "inline") {
+      const longest = Math.max(...labelLines.flat().map((l) => measure(l, "mono-700", b.size, b.ls) - b.ls));
+      const need = longest + 2 * b.minSide;
+      if (need > bw) {
+        // The gaps may shrink until a button's hard shadow almost touches the next one, no further.
+        const kMin = (s.sx + 2) / b.gap, room = (win - 2 * (b.L + b.gap) * kMin) / 3 - 2 * b.minSide;
+        const k = (win - 3 * need) / (2 * b.L + 2 * b.gap);
+        if (k < kMin) { const i = labelLines.findIndex((ls) => ls.some((l) => measure(l, "mono-700", b.size, b.ls) - b.ls === longest)); fit(`buttons[${i}].label`, layout, longest, room); }
+        L = b.L * k; gap = b.gap * k; bw = need;
+      }
+    }
     const items = [body(h)];
     const pieces = [];
     data.buttons.forEach((btn, k) => {
-      const x = b.L + k * (bw + b.gap), y = 0;
+      const x = L + k * (bw + gap), y = 0;
       const third = W / 3;
       if (x < k * third - 0.01 || x + bw + s.sx > (k + 1) * third + 0.01) throw new Error(`button geometry: a button crosses its third in the ${layout} layout`);
       const primary = k === 0;
@@ -279,20 +342,9 @@ export function buildLayout(data, src, layout, theme) {
         items.push(shape(g));
         items.push(textItem(cx0 + b.icon + b.iconGap, mid(y + bh / 2, b.size), [{ text: label, face: "mono-700", fill: txt }], b.size, { spacing: b.ls, label: `button ${btn.label}` }));
       } else {
-        // Icon above the label. stack1: the label on one line; stack2: always a block of two lines,
-        // split at the space that balances them best, so the three buttons share one structure.
-        let lines = [label];
-        if (b.style === "stack2") {
-          const words = label.split(" ");
-          let best = null;
-          for (let i = 1; i < words.length; i++) {
-            const pair = [words.slice(0, i).join(" "), words.slice(i).join(" ")];
-            const wmax = Math.max(...pair.map((p) => measure(p, "mono-700", b.size, b.ls)));
-            if (!best || wmax < best.wmax) best = { pair, wmax };
-          }
-          lines = best ? best.pair : [label];
-        }
-        for (const l of lines) fit(field, layout, measure(l, "mono-700", b.size, b.ls) - b.ls, bw - 8);
+        // Icon above the label; a one-word label in a two-line block sits in its middle.
+        const lines = labelLines[k];
+        for (const l of lines) fit(field, layout, measure(l, "mono-700", b.size, b.ls) - b.ls, bw - 2 * b.minSide);
         const slots = b.style === "stack2" ? 2 : 1;
         const block = b.icon + b.iconGap + slots * b.lh;
         let yy = y + (bh - block) / 2;
@@ -331,7 +383,7 @@ export function buildLayout(data, src, layout, theme) {
 }
 
 // ---------- SVG of one piece ----------
-function fontCss(src, faces) {
+export function fontCss(src, faces) {
   const fams = {};
   for (const f of faces) { const [fam, i] = FACE_FILE[f]; (fams[fam] ||= new Set()).add(i); }
   let css = "";
@@ -344,13 +396,13 @@ function fontCss(src, faces) {
 
 // motion: "animated" or "still". Returns the SVG and the text items inside it.
 export function pieceSvg(src, theme, row, piece, motion) {
-  const h = row.h;
+  const h = piece.h ?? row.h, all = piece.items ?? row.items;
   const x0 = piece.x, x1 = piece.x + piece.w;
-  const texts = row.items.filter((it) => it.kind === "text" && it.x1 > x0 - 1 && it.x0 < x1 + 1);
+  const texts = all.filter((it) => it.kind === "text" && it.x1 > x0 - 1 && it.x0 < x1 + 1);
   const faces = new Set(texts.flatMap((t) => t.runs.map((r) => r.face)));
   let css = fontCss(src, faces);
   const defs = row.id === "tabs" ? "" : `<defs><pattern id="g" width="48" height="48" patternUnits="userSpaceOnUse" x="0" y="${n(row.gridY)}"><rect width="48" height="1" fill="rgba(${theme.ink},.04)"/><rect width="1" height="48" fill="rgba(${theme.ink},.04)"/></pattern></defs>`;
-  let body = row.items.filter((it) => it.kind === "shape" || texts.includes(it)).map((it) => it.markup).join("");
+  let body = all.filter((it) => (it.kind === "shape" && it.x1 > x0 && it.x0 < x1) || texts.includes(it)).map((it) => it.markup).join("");
   if (row.id === "hero") {
     const a = row.avatar;
     const open = `<svg x="${n(a.x)}" y="${n(a.y)}" width="${n(a.w)}" height="${n(a.h)}" viewBox="0 0 ${AVATAR_W} ${AVATAR_H}">`;

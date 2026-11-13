@@ -1,0 +1,67 @@
+{
+  "schema": 1,
+  "lang": "es",
+  "cv": "https://www.kairomx.tech/cv/index.html?lang=es",
+  "window": { "title": "MSO · PORTFOLIO", "titleAccent": ".EXE" },
+  "tabs": [
+    { "id": "home", "label": "Inicio", "href": "https://www.kairomx.tech/cv/index.html?lang=es#inicio" },
+    { "id": "projects", "label": "Proyectos", "href": "https://www.kairomx.tech/cv/index.html?lang=es#proyectos" },
+    { "id": "stack", "label": "Stack", "href": "https://www.kairomx.tech/cv/index.html?lang=es#stack" },
+    { "id": "experience", "label": "Experiencia", "href": "https://www.kairomx.tech/cv/index.html?lang=es#entrenamiento-ia" },
+    { "id": "about", "label": "Sobre mí", "href": "https://www.kairomx.tech/cv/index.html?lang=es#sobre-mi" },
+    { "id": "contact", "label": "Contacto", "href": "https://www.kairomx.tech/cv/index.html?lang=es#contacto" }
+  ],
+  "hero": {
+    "name": "Marco Sebastián Ortega Molina",
+    "role": "Desarrollador full-stack · Entrenador de IA",
+    "titleLine1": { "lead": "Construyo", "accent": "software." },
+    "titleLine2": { "lead": "Entreno", "accent": "IA." },
+    "pitch": [
+      { "text": "Desarrollo ", "strong": false },
+      { "text": "aplicaciones web y móviles", "strong": true },
+      { "text": " con inteligencia artificial integrada.", "strong": false }
+    ],
+    "alt": "Marco Sebastián Ortega Molina. Desarrollador full-stack · Entrenador de IA. Construyo software. Entreno IA. Desarrollo aplicaciones web y móviles con inteligencia artificial integrada."
+  },
+  "buttons": [
+    { "id": "projects", "label": "Ver proyectos", "href": "https://www.kairomx.tech/cv/index.html?lang=es#proyectos" },
+    { "id": "contact", "label": "Contáctame", "href": "https://www.kairomx.tech/cv/index.html?lang=es#contacto" },
+    { "id": "cv", "label": "Descargar CV", "href": "https://www.kairomx.tech/cv/pdf/cv-es.pdf" }
+  ],
+  "status": {
+    "parts": [
+      { "text": "Disponible para ", "strong": false },
+      { "text": "trabajo remoto", "strong": true }
+    ],
+    "href": "https://www.kairomx.tech/cv/index.html?lang=es#contacto",
+    "alt": "Disponible para trabajo remoto"
+  },
+  "stack": {
+    "label": "STACK.INI",
+    "href": "https://www.kairomx.tech/cv/index.html?lang=es#stack",
+    "altLead": "Stack técnico",
+    "items": [
+      { "id": "typescript", "name": "TypeScript" },
+      { "id": "javascript", "name": "JavaScript" },
+      { "id": "python", "name": "Python" },
+      { "id": "react", "name": "React" },
+      { "id": "react-native", "name": "React Native" },
+      { "id": "nextjs", "name": "Next.js" },
+      { "id": "nodejs", "name": "Node.js" },
+      { "id": "expo", "name": "Expo" },
+      { "id": "supabase", "name": "Supabase" },
+      { "id": "postgresql", "name": "PostgreSQL" },
+      { "id": "tailwindcss", "name": "Tailwind CSS" },
+      { "id": "vercel", "name": "Vercel" },
+      { "id": "git", "name": "Git" },
+      { "id": "docker", "name": "Docker" },
+      { "id": "n8n", "name": "n8n" },
+      { "id": "claude", "name": "Claude" }
+    ]
+  },
+  "projects": [
+    { "slug": "joyeria", "window": "JOYERIA.EXE", "title": "Ventas e inventario de una joyería", "cat": "Web · PWA", "sub": "Precios, inventario, ventas y tienda para bazares", "href": "https://www.kairomx.tech/cv/proyectos/joyeria.html?lang=es", "featured": true },
+    { "slug": "zahori", "window": "ZAHORI.PY", "title": "Proyecto Zahorí", "cat": "ML · IA", "sub": "Detección de fugas de agua con IA", "href": "https://www.kairomx.tech/cv/proyectos/zahori.html?lang=es", "featured": true },
+    { "slug": "conocimiento", "window": "CONOCIMIENTO.MD", "title": "Gestión del conocimiento con IA", "cat": "IA · Escritorio", "sub": "Asistente personal con IA para un directivo", "href": "https://www.kairomx.tech/cv/proyectos/conocimiento.html?lang=es", "featured": true }
+  ]
+}
