@@ -1,10 +1,13 @@
-// Measures the header as GitHub shows it (and, where a reference is needed, locally) with Playwright.
+// Measures a README as GitHub shows it (and, where a reference is needed, locally) with Playwright.
 //   NODE_PATH=<folder with playwright> node pruebas/medir.cjs <output-folder> [options]
 //     --ref BRANCH_OR_COMMIT   page to measure (default readme-nuevo)
+//     --readme README.es.md    which README (default README.md, the page of the repository)
 //     --root FOLDER            checkout whose generator, README and data match that ref (default: this one)
 //     --only 1,4,5g,...        run only these checks
 //     --quick-sweep            sweep only the dark theme at 1x
 //     --sketch PNG             sketch image for the side-by-side picture (check 10)
+//     --base COMMIT            check 11: the English header of that commit, rendered locally, against today's
+//     --covers FOLDER          check 12: folder with the original covers (<slug>.webp)
 // Writes medicion.json and screenshots into <output-folder>. Checks:
 //   1  smallest text on screen at every viewport of the sweep (11 px from 360, 10 px below)
 //   4  seams: no gap or dropped piece at every viewport of the sweep, dark and light, 1x and 2x
@@ -15,6 +18,10 @@
 //   8  contrast measured in the screenshots, both themes
 //   9  every README link answers 200 (curl -I)
 //  10  the sketch and the desktop dark header side by side
+//  11  the English header against --base, pixel by pixel, in the three compositions and both themes (local)
+//  12  each embedded cover against its original reduced by the browser to the same size (local)
+// Check 4 also measures the blocks under the header: the tech strip and the project row share the
+// header's left and right edges, and the space above each block is the same.
 const fs = require("fs");
 const path = require("path");
 const { execFileSync } = require("child_process");
@@ -27,11 +34,14 @@ const ROOT = path.resolve(arg("--root") || HERE);
 const OUT = path.resolve(process.argv[2] || "");
 if (!process.argv[2] || process.argv[2].startsWith("--")) { console.error("usage: node pruebas/medir.cjs <output-folder> [--ref REF] [--root DIR] [--only LIST] [--quick-sweep] [--sketch PNG]"); process.exit(2); }
 const REF = arg("--ref") || "readme-nuevo";
+const README = arg("--readme") || "README.md";
+const LANG = README === "README.md" ? "en" : "es";
 const ONLY = arg("--only") ? arg("--only").split(",") : null;
 const want = (k) => !ONLY || ONLY.includes(k);
 const QUICK = process.argv.includes("--quick-sweep");
 const SKETCH = arg("--sketch");
-const URL_GH = `https://github.com/MarcoSebastianOrtegaMolina/MarcoSebastianOrtegaMolina/tree/${REF}`;
+const REPO = "https://github.com/MarcoSebastianOrtegaMolina/MarcoSebastianOrtegaMolina";
+const URL_GH = README === "README.md" ? `${REPO}/tree/${REF}` : `${REPO}/blob/${REF}/${README}`;
 const THRESHOLD = 32; // a pixel differs if a channel changes by more than 32/255
 fs.mkdirSync(OUT, { recursive: true });
 const save = (name, buf) => fs.writeFileSync(path.join(OUT, name), buf);
@@ -39,9 +49,13 @@ const r3 = (x) => Math.round(x * 1000) / 1000;
 const baseOf = (src) => decodeURIComponent(String(src).split("?")[0].split("/").pop()).replace(/-[0-9a-f]{8}\.svg$/, "");
 const fileUrl = (p) => pathToFileURL(p).href;
 
-const readme = fs.readFileSync(path.join(ROOT, "README.md"), "utf8");
-const ROWS = readme.match(/<p>(.*)<\/p>/s)[1].split("<br>").map((r) => (r.match(/<picture>/g) || []).length);
-const HREFS = [...new Set([...readme.matchAll(/href="([^"]*)"/g)].map((m) => m[1].replace(/&amp;/g, "&")))];
+const readme = fs.readFileSync(path.join(ROOT, README), "utf8");
+// The header is the paragraph whose rows are joined by <br>; the blocks after it hold one paragraph each.
+const PARAS = [...readme.matchAll(/<p>(.*?)<\/p>/gs)].map((m) => m[1]);
+const ROWS = PARAS.find((x) => x.includes("<br>")).split("<br>").map((r) => (r.match(/<picture>/g) || []).length);
+const BLOCKS = PARAS.filter((x) => !x.includes("<br>")).map((x) => (x.match(/<picture>/g) || []).length);
+const ANIMATED = [...readme.matchAll(/<picture>(.*?)<\/picture>/g)].map((m) => m[1].includes("prefers-reduced-motion"));
+const HREFS = [...new Set([...readme.matchAll(/href="([^"]*)"/g)].map((m) => m[1].replace(/&amp;/g, "&")).filter((h) => h.startsWith("https://")))];
 const PICS = "article.markdown-body picture > img";
 
 async function openGH(nav, { width, theme = "dark", dpr = 1, reduce = false }) {
@@ -62,7 +76,7 @@ async function waitImages(page) {
       const wanted = (s ? s.getAttribute("srcset") : i.getAttribute("src")).split("?")[0].split("/").pop();
       return i.complete && i.naturalWidth > 0 && decodeURIComponent(i.currentSrc.split("?")[0]).endsWith(decodeURIComponent(wanted));
     });
-  }, { sel: PICS, n: ROWS.reduce((a, b) => a + b, 0) }, { timeout: 60000, polling: 50 });
+  }, { sel: PICS, n: ANIMATED.length }, { timeout: 60000, polling: 50 });
 }
 async function headerBox(page) {
   return page.evaluate((sel) => {
@@ -138,6 +152,37 @@ async function contrast(lab, png, box) {
   }, { png: png.toString("base64"), box });
 }
 
+// Contrast of one logo: background = most common color of the whole image it sits in; logo = the
+// median contrast of the pixels in its box that differ from that background.
+async function logoContrast(lab, png, imgBox, box) {
+  return lab.evaluate(async ({ png, imgBox, box }) => {
+    const i = await new Promise((ok) => { const im = new Image(); im.onload = () => ok(im); im.src = "data:image/png;base64," + png; });
+    const c = document.createElement("canvas"); c.width = i.width; c.height = i.height; const x = c.getContext("2d"); x.drawImage(i, 0, 0);
+    const get = ([x0, y0, w, h]) => x.getImageData(Math.max(0, Math.round(x0)), Math.max(0, Math.round(y0)), Math.max(1, Math.round(w)), Math.max(1, Math.round(h))).data;
+    const lum = (r, g, b) => { const f = (v) => { v /= 255; return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; }; return 0.2126 * f(r) + 0.7152 * f(g) + 0.0722 * f(b); };
+    const all = get(imgBox), count = new Map();
+    for (let k = 0; k < all.length; k += 4) { const key = (all[k] << 16) | (all[k + 1] << 8) | all[k + 2]; count.set(key, (count.get(key) || 0) + 1); }
+    const bgKey = [...count].sort((a, b) => b[1] - a[1])[0][0];
+    const bg = [(bgKey >> 16) & 255, (bgKey >> 8) & 255, bgKey & 255], lb = lum(...bg);
+    const d = get(box), ratios = [];
+    for (let k = 0; k < d.length; k += 4) {
+      if (Math.max(Math.abs(d[k] - bg[0]), Math.abs(d[k + 1] - bg[1]), Math.abs(d[k + 2] - bg[2])) <= 8) continue;
+      const l = lum(d[k], d[k + 1], d[k + 2]);
+      ratios.push((Math.max(l, lb) + 0.05) / (Math.min(l, lb) + 0.05));
+    }
+    ratios.sort((a, b) => a - b);
+    return { bg: "#" + bg.map((v) => v.toString(16).padStart(2, "0")).join(""), pixels: ratios.length, ratio: ratios.length ? +ratios[Math.floor(ratios.length / 2)].toFixed(2) : 0 };
+  }, { png: png.toString("base64"), imgBox, box });
+}
+
+// A page that shows a README the way GitHub lays it out (its column width, paragraphs 16 px apart),
+// with the images from a local folder. Used by checks 11 and 12, which need no network.
+function localPage(file, html, assetsDir, width, theme) {
+  const md = html.replace(/<!--.*?-->/s, "").replace(/assets\//g, pathToFileURL(assetsDir).href + "/");
+  fs.writeFileSync(file, `<!doctype html><meta charset="utf-8"><style>body{margin:0;background:${theme === "dark" ? "#0d1117" : "#ffffff"}}article{width:${width}px;margin:16px}p{margin:0 0 16px}img{max-width:100%;box-sizing:content-box}</style><article class="markdown-body">${md}</article>`);
+  return pathToFileURL(file).href;
+}
+
 // Reload one image with a fresh URL and mark the moment it loads: its animation starts there.
 async function restart(page, index) {
   return page.evaluate(({ sel, index, extra }) => new Promise((ok, ko) => {
@@ -159,15 +204,18 @@ async function shotAt(page, el, t) {
 (async () => {
   const C = await import(pathToFileURL(path.join(HERE, "generador/constantes.mjs")).href);
   const { buildFromDisk } = await import(pathToFileURL(path.join(ROOT, "generador/generar.mjs")).href);
-  const built = buildFromDisk();
-  const fileByBase = new Map(built.files.map((f) => [f.base, f]));
+  const all = buildFromDisk();
+  const built = all.langs[LANG];
+  const fileByBase = new Map(all.files.map((f) => [f.base, f]));
   const minSize = (f) => Math.min(...f.texts.map((t) => t.size));
+  // Extra lines a header row takes in a layout (the phone's tabs: two lines of three).
+  const extraLines = Object.fromEntries(C.LAYOUT_ORDER.map((l) => [l, new Set(built.files.filter((f) => f.row === "tabs" && f.layout === l).map((f) => f.viewH)).size - 1]));
   const nav = await chromium.launch({ headless: true });
   const lab = await (await nav.newContext()).newPage();
   await lab.goto("about:blank");
-  const res = { date: new Date().toISOString(), url: URL_GH, root: ROOT, chromium: nav.version(), rows: ROWS };
-  const nPics = ROWS.reduce((a, b) => a + b, 0);
-  const heroIndex = ROWS[0], statusIndex = nPics - 1;
+  const res = { date: new Date().toISOString(), url: URL_GH, readme: README, root: ROOT, chromium: nav.version(), rows: ROWS, blocks: BLOCKS };
+  const nHeader = ROWS.reduce((a, b) => a + b, 0);
+  const heroIndex = ROWS[0];
   const BG = { dark: [10, 10, 10], light: [244, 239, 230] };
 
   // ---------- 5g. light eyelids keep the grid (local render with the animation clock fixed) ----------
@@ -203,21 +251,21 @@ async function shotAt(page, el, t) {
       const got = await page.evaluate((sel) => [...document.querySelectorAll(sel)].map((i) => ({ src: i.currentSrc, media: [...i.parentElement.querySelectorAll("source")].map((s) => s.getAttribute("media")) })), PICS);
       const wrong = [];
       got.forEach((g, i) => {
-        const animated = i === heroIndex || i === statusIndex;
-        const end = `-${layout}-${theme}${animated && reduce ? "-still" : ""}`;
+        const end = `-${layout}-${theme}${ANIMATED[i] && reduce ? "-still" : ""}`;
         if (!baseOf(g.src).endsWith(end)) wrong.push(`${baseOf(g.src)} (want *${end})`);
       });
       cases.push({ width, layout, theme, reduce, pictures: got.length, sourcesKept: got.every((g) => g.media.every(Boolean)), wrong });
       await ctx.close();
     }
-    res.p5 = { cases, pass: cases.every((c) => c.pictures === nPics && c.sourcesKept && !c.wrong.length) };
+    res.p5 = { cases, pass: cases.every((c) => c.pictures === ANIMATED.length && c.sourcesKept && !c.wrong.length) };
     console.log("5 sources:", res.p5.pass, cases.filter((c) => c.wrong.length).map((c) => JSON.stringify(c)).join(" "));
   }
 
   // ---------- 7 and 8: text sizes and contrast, plus screenshots for review ----------
   if (want("7") || want("8")) {
     const sizes = [], contrasts = [];
-    for (const width of [1280, 1212, 900, 768, 390, 360]) for (const theme of ["dark", "light"]) {
+    const logos = [];
+    for (const width of [1280, C.LAYOUTS.tab.lastViewport + 1, 900, 768, 390, 360]) for (const theme of ["dark", "light"]) {
       const { ctx, page } = await openGH(nav, { width, theme, dpr: 2 });
       await page.evaluate((sel) => document.querySelectorAll(sel)[0].scrollIntoView({ block: "start", behavior: "instant" }), PICS);
       await page.waitForTimeout(3200); // SVG animations start when first painted; wait for the build-up
@@ -235,6 +283,12 @@ async function shotAt(page, el, t) {
         const f = fileByBase.get(baseOf(info.src));
         if (!f) { sizes.push({ width, theme, error: "unknown file " + baseOf(info.src) }); continue; }
         const scale = info.w / f.viewW;
+        if (measureContrast && f.logos) for (const lg of f.logos) {
+          const imgBox = [info.x * 2, info.y * 2, info.w * 2, f.viewH * scale * 2];
+          const b = [(info.x + (lg.x0 - f.viewX) * scale) * 2, (info.y + lg.y0 * scale) * 2, (lg.x1 - lg.x0) * scale * 2, (lg.y1 - lg.y0) * scale * 2];
+          const c = await logoContrast(lab, full, imgBox, b);
+          logos.push({ width, theme, file: f.base, logo: lg.id, filter: lg.filter, ...c, pass: c.ratio >= 3 });
+        }
         for (const t of f.texts) {
           sizes.push({ width, theme, file: f.base, text: t.label, px: r3(t.size * scale) });
           if (!measureContrast) continue;
@@ -253,9 +307,12 @@ async function shotAt(page, el, t) {
     const byWidth = {};
     for (const s of sizes.filter((s) => s.px !== undefined)) byWidth[s.width] = Math.min(byWidth[s.width] ?? Infinity, s.px);
     res.p7 = { minByWidth: byWidth, sizes, pass: Object.entries(byWidth).every(([w, px]) => px >= C.minTextPx(+w)) && !sizes.some((s) => s.error) };
-    res.p8 = { worst: contrasts.slice().sort((a, b) => (a.ratio / a.need) - (b.ratio / b.need)).slice(0, 5), failures: contrasts.filter((c) => !c.pass), runs: contrasts.length, all: contrasts, pass: contrasts.length > 0 && contrasts.every((c) => c.pass) };
+    const worstLogo = (theme) => logos.filter((l) => l.theme === theme).sort((a, b) => a.ratio - b.ratio)[0];
+    res.p8 = { worst: contrasts.slice().sort((a, b) => (a.ratio / a.need) - (b.ratio / b.need)).slice(0, 5), failures: contrasts.filter((c) => !c.pass), runs: contrasts.length, all: contrasts,
+      logos: { measured: logos.length, failures: logos.filter((l) => !l.pass), worstDark: worstLogo("dark"), worstLight: worstLogo("light"), all: logos },
+      pass: contrasts.length > 0 && contrasts.every((c) => c.pass) && logos.length > 0 && logos.every((l) => l.pass) };
     console.log("7 sizes:", res.p7.pass, JSON.stringify(byWidth));
-    console.log("8 contrast:", res.p8.pass, "runs", contrasts.length, "worst", JSON.stringify(res.p8.worst.slice(0, 2)));
+    console.log("8 contrast:", res.p8.pass, "runs", contrasts.length, "worst", JSON.stringify(res.p8.worst.slice(0, 2)), "logos", logos.length, JSON.stringify([res.p8.logos.worstDark, res.p8.logos.worstLight]));
   }
 
   // ---------- 6. avatar ----------
@@ -263,7 +320,7 @@ async function shotAt(page, el, t) {
     const out = {};
     for (const [width, theme] of [[1280, "dark"], [1280, "light"], [900, "dark"], [900, "light"], [390, "dark"], [390, "light"]]) {
       const layout = C.layoutFor(width);
-      const f = fileByBase.get(`hero-${layout}-${theme}`);
+      const f = fileByBase.get(`${LANG}-hero-${layout}-${theme}`);
       const av = built.layouts[`${layout}-${theme}`].rows[1].avatar;
       // Animated: frames at 0.4 s and 3.0 s after load (the eyes do not move before 3.76 s).
       const a = await openGH(nav, { width, theme, dpr: 2 });
@@ -321,6 +378,8 @@ async function shotAt(page, el, t) {
   if (want("4") || want("1")) {
     const combos = {};
     const legible = { fails: [], worst: null };
+    const blockFails = [];
+    let worstBlock = null;
     const edges = C.LAYOUT_ORDER.map((l) => C.LAYOUTS[l].lastViewport).filter(Number.isFinite);
     const shotsAt = [320, 360, 390, 768, 900, 1280, ...edges, ...edges.map((e) => e + 1)];
     const runs = QUICK ? [["dark", 1]] : [["dark", 1], ["dark", 2], ["light", 1], ["light", 2]];
@@ -331,22 +390,39 @@ async function shotAt(page, el, t) {
       for (let w = C.SWEEP.to; w >= C.SWEEP.from; w--) {
         await page.setViewportSize({ width: w, height: 1000 });
         await waitImages(page);
-        const m = await page.evaluate(({ sel, rows }) => {
+        const m = await page.evaluate(({ sel, nHeader, heroIndex, blocks }) => {
           const imgs = [...document.querySelectorAll(sel)];
           const r = imgs.map((i) => i.getBoundingClientRect());
-          let k = 0, maxH = 0, maxV = 0, drops = 0, maxEdge = 0;
-          const rowsR = rows.map((n) => r.slice(k, (k += n)));
-          const right = rowsR[1][0].right, left = rowsR[1][0].left;
-          rowsR.forEach((row, j) => {
-            row.forEach((b, i) => { if (i) maxH = Math.max(maxH, Math.abs(b.left - row[i - 1].right)); if (Math.abs(b.top - row[0].top) > 0.5) drops++; });
-            maxEdge = Math.max(maxEdge, Math.abs(row[row.length - 1].right - right), Math.abs(row[0].left - left));
-            if (j) maxV = Math.max(maxV, Math.abs(Math.min(...row.map((b) => b.top)) - Math.max(...rowsR[j - 1].map((b) => b.bottom))));
+          const head = r.slice(0, nHeader);
+          // Lines: header pieces grouped by their top edge, in order.
+          const lines = [];
+          for (const b of head) { const l = lines.find((x) => Math.abs(x.top - b.top) <= 0.5); if (l) l.items.push(b); else lines.push({ top: b.top, items: [b] }); }
+          const left = r[heroIndex].left, right = r[heroIndex].right;
+          let maxH = 0, maxV = 0, maxEdge = 0;
+          lines.forEach((l, j) => {
+            l.items.sort((a, b) => a.left - b.left);
+            l.items.forEach((b, i) => { if (i) maxH = Math.max(maxH, Math.abs(b.left - l.items[i - 1].right)); });
+            maxEdge = Math.max(maxEdge, Math.abs(l.items[l.items.length - 1].right - right), Math.abs(l.items[0].left - left));
+            if (j) maxV = Math.max(maxV, Math.abs(Math.min(...l.items.map((b) => b.top)) - Math.max(...lines[j - 1].items.map((b) => b.bottom))));
           });
-          return { maxH, maxV, drops, maxEdge, imgs: imgs.map((i, n) => [i.currentSrc, r[n].width]), height: Math.max(...r.map((b) => b.bottom)) - Math.min(...r.map((b) => b.top)) };
-        }, { sel: PICS, rows: ROWS });
+          // Blocks under the header: same left and right edges as the header, and the space above each.
+          let k = nHeader, prevBottom = Math.max(...head.map((b) => b.bottom));
+          const blockEdge = [], spaces = [];
+          for (const n of blocks) {
+            const br = r.slice(k, (k += n));
+            blockEdge.push(Math.max(Math.abs(Math.min(...br.map((b) => b.left)) - left), Math.abs(Math.max(...br.map((b) => b.right)) - right)));
+            spaces.push(Math.min(...br.map((b) => b.top)) - prevBottom);
+            prevBottom = Math.max(...br.map((b) => b.bottom));
+          }
+          return { maxH, maxV, maxEdge, lines: lines.length, blockEdge: Math.max(0, ...blockEdge), spaces, imgs: imgs.map((i, n) => [i.currentSrc, r[n].width]), height: Math.max(...head.map((b) => b.bottom)) - Math.min(...head.map((b) => b.top)) };
+        }, { sel: PICS, nHeader, heroIndex, blocks: BLOCKS });
+        m.drops = m.lines !== ROWS.length + extraLines[C.layoutFor(w)] ? 1 : 0;
+        const spread = Math.max(...m.spaces) - Math.min(...m.spaces);
+        if (m.blockEdge > 0.5 || spread > 0.5) blockFails.push({ w, blockEdge: m.blockEdge, spaces: m.spaces });
+        if (!worstBlock || m.blockEdge + spread > worstBlock.score) worstBlock = { w, score: m.blockEdge + spread, blockEdge: m.blockEdge, spaces: m.spaces };
         const gap = Math.max(m.maxH, m.maxV, m.maxEdge);
         if (gap > worst.gap) worst = { w, maxH: m.maxH, maxV: m.maxV, maxEdge: m.maxEdge, gap };
-        if (gap > 0.5 || m.drops) fails.push({ w, maxH: m.maxH, maxV: m.maxV, maxEdge: m.maxEdge, drops: m.drops });
+        if (gap > 0.5 || m.drops) fails.push({ w, maxH: m.maxH, maxV: m.maxV, maxEdge: m.maxEdge, lines: m.lines, drops: m.drops });
         // Smallest text on screen at this viewport, from each image's rendered width.
         let px = Infinity, at = null;
         for (const [src, width] of m.imgs) {
@@ -360,15 +436,16 @@ async function shotAt(page, el, t) {
         if (px < need) legible.fails.push({ w, px: r3(px), need, file: at });
         if (shotsAt.includes(w) && dpr === 2) {
           const box = await headerBox(page);
-          save(`seam-${w}-${theme}.png`, await page.screenshot({ fullPage: true, clip: { x: box.x - 4, y: box.y - 4, width: box.width + 8, height: box.height + 8 } }));
+          const pageH = await page.evaluate(() => document.querySelector("article.markdown-body").getBoundingClientRect().bottom + scrollY);
+          save(`seam-${w}-${theme}.png`, await page.screenshot({ fullPage: true, clip: { x: box.x - 4, y: box.y - 4, width: box.width + 8, height: pageH - box.y + 8 } }));
         }
       }
       combos[`${theme}-dpr${dpr}`] = { widths: C.SWEEP.to - C.SWEEP.from + 1, fails: fails.length, firstFails: fails.slice(0, 5), worst };
       await ctx.close();
     }
-    if (want("4")) res.p4 = { combos, quick: QUICK, pass: Object.values(combos).every((c) => !c.fails) };
+    if (want("4")) res.p4 = { combos, quick: QUICK, blocks: { fails: blockFails.length, firstFails: blockFails.slice(0, 5), worst: worstBlock }, pass: Object.values(combos).every((c) => !c.fails) && !blockFails.length };
     if (want("1")) res.p1 = { fails: legible.fails.length, firstFails: legible.fails.slice(0, 8), worst: legible.worst, pass: !legible.fails.length };
-    console.log("4 seams:", res.p4 ? res.p4.pass : "-", JSON.stringify(combos));
+    console.log("4 seams:", res.p4 ? res.p4.pass : "-", JSON.stringify(combos), "blocks", JSON.stringify(res.p4 ? res.p4.blocks : {}));
     console.log("1 smallest text:", res.p1 ? res.p1.pass : "-", JSON.stringify(res.p1 || {}));
   }
 
@@ -381,6 +458,77 @@ async function shotAt(page, el, t) {
     });
     res.p9 = { links, pass: links.every((l) => l.code === "200") };
     console.log("9 links:", res.p9.pass, links.map((l) => `${l.code} ${l.url}`).join(" | "));
+  }
+
+  // ---------- 11. the English header against a commit, rendered locally ----------
+  const BASE = arg("--base");
+  if (want("11") && BASE && LANG === "en") {
+    const git = (args) => execFileSync("git", args, { cwd: ROOT, maxBuffer: 1 << 26 });
+    const baseDir = path.join(OUT, "base"), nowDir = path.join(ROOT, "assets");
+    fs.mkdirSync(path.join(baseDir, "assets"), { recursive: true });
+    const oldReadme = git(["show", `${BASE}:README.md`]).toString("utf8");
+    for (const m of new Set([...oldReadme.matchAll(/assets\/([^"]+\.svg)/g)].map((x) => x[1]))) fs.writeFileSync(path.join(baseDir, "assets", m), git(["show", `${BASE}:assets/${m}`]));
+    // Only the header: the first paragraph with <br>.
+    const headerOf = (md) => `<p>${md.match(/<p>((?:(?!<\/p>).)*<br>(?:(?!<\/p>).)*)<\/p>/s)[1]}</p>`;
+    const cases = [];
+    for (const width of [1280, 900, 390]) for (const theme of ["dark", "light"]) {
+      const col = C.githubColumn(width), layout = C.layoutFor(width);
+      const shots = [];
+      for (const [name, md, dir] of [["base", oldReadme, path.join(baseDir, "assets")], ["now", readme, nowDir]]) {
+        // The viewport is the real one, so the media queries pick that layout; the column is GitHub's.
+        const ctx = await nav.newContext({ viewport: { width, height: 1200 }, deviceScaleFactor: 2, colorScheme: theme, reducedMotion: "reduce" });
+        const page = await ctx.newPage();
+        await page.goto(localPage(path.join(OUT, `cmp-${name}-${width}-${theme}.html`), headerOf(md), dir, col, theme));
+        await page.waitForFunction(() => [...document.images].every((i) => i.complete && i.naturalWidth > 0));
+        await page.waitForTimeout(300);
+        const rows = await page.evaluate(() => { const r = [...document.images].map((i) => i.getBoundingClientRect()); const tops = [...new Set(r.map((b) => Math.round(b.top)))]; return { tops, bottom: Math.max(...r.map((b) => b.bottom)) }; });
+        const png = await page.screenshot({ clip: { x: 16, y: 16, width: col, height: rows.bottom - 16 } });
+        save(`cmp-${name}-${width}-${theme}.png`, png);
+        shots.push({ png, rows });
+        await ctx.close();
+      }
+      const [a, b] = shots;
+      // Compare the rows the two share by their place from the bottom of the header (the rows that did
+      // not move), and the whole image.
+      const whole = await compare(lab, a.png, b.png);
+      const heights = [a.rows.bottom - 16, b.rows.bottom - 16];
+      cases.push({ width, layout, theme, heights, whole });
+    }
+    res.p11 = { base: BASE, cases };
+    console.log("11 English header vs", BASE, JSON.stringify(cases.map((c) => `${c.layout}-${c.theme} ${c.heights.map((h) => h.toFixed(0)).join("/")} ${c.whole.pct}%`)));
+  }
+
+  // ---------- 12. covers against their originals ----------
+  const COVERS = arg("--covers");
+  if (want("12") && COVERS) {
+    const out = [];
+    for (const f of all.files.filter((f) => f.section === "projects" && f.lang === LANG && f.theme === "dark")) {
+      const m = f.content.match(/href="data:image\/jpeg;base64,([^"]+)"/);
+      const slug = f.cover.slug, orig = path.join(COVERS, `${slug}.webp`);
+      const page = await (await nav.newContext({ viewport: { width: f.cover.px + 20, height: f.cover.py + 20 } })).newPage();
+      const html = path.join(OUT, `cover-${slug}-${f.layout}.html`);
+      fs.writeFileSync(html, `<!doctype html><style>body{margin:0}img{display:block;width:${f.cover.px}px;height:${f.cover.py}px}</style><img id="o" src="${pathToFileURL(orig).href}"><img id="j" src="data:image/jpeg;base64,${m[1]}">`);
+      await page.goto(pathToFileURL(html).href);
+      await page.waitForFunction(() => [...document.images].every((i) => i.complete && i.naturalWidth > 0));
+      const nat = await page.evaluate(() => [...document.images].map((i) => [i.naturalWidth, i.naturalHeight]));
+      const o = await page.locator("#o").screenshot(), j = await page.locator("#j").screenshot();
+      save(`cover-${slug}-${f.layout}-orig.png`, o); save(`cover-${slug}-${f.layout}-jpeg.png`, j);
+      const diff = await compare(lab, o, j);
+      const mean = await lab.evaluate(async ({ a, b }) => {
+        const load = (s) => new Promise((ok) => { const i = new Image(); i.onload = () => ok(i); i.src = "data:image/png;base64," + s; });
+        const [ia, ib] = await Promise.all([load(a), load(b)]);
+        const px = (im) => { const c = document.createElement("canvas"); c.width = ia.width; c.height = ia.height; const x = c.getContext("2d"); x.drawImage(im, 0, 0); return x.getImageData(0, 0, ia.width, ia.height).data; };
+        const da = px(ia), db = px(ib); let t = 0;
+        for (let i = 0; i < da.length; i += 4) t += (Math.abs(da[i] - db[i]) + Math.abs(da[i + 1] - db[i + 1]) + Math.abs(da[i + 2] - db[i + 2])) / 3;
+        return +(t / (da.length / 4)).toFixed(2);
+      }, { a: o.toString("base64"), b: j.toString("base64") });
+      const ratioOrig = nat[0][0] / nat[0][1], ratioJpeg = nat[1][0] / nat[1][1], ratioShown = f.cover.w / f.cover.h;
+      const aspect = Math.max(Math.abs(ratioJpeg / ratioOrig - 1), Math.abs(ratioShown / ratioOrig - 1));
+      out.push({ slug, layout: f.layout, size: nat[1], original: nat[0], aspectError: +(aspect * 100).toFixed(3), pixelsOver32: diff.pct, meanDiff: mean, pass: aspect < 0.005 && diff.pct < 1 });
+      await page.context().close();
+    }
+    res.p12 = { covers: out, pass: out.length > 0 && out.every((c) => c.pass) };
+    console.log("12 covers:", res.p12.pass, JSON.stringify(out.map((c) => `${c.slug}-${c.layout} ${c.size.join("x")} aspect ${c.aspectError}% px>32 ${c.pixelsOver32}% mean ${c.meanDiff}`)));
   }
 
   // ---------- 10. sketch and header side by side ----------
@@ -397,7 +545,7 @@ async function shotAt(page, el, t) {
   }
 
   await nav.close();
-  res.summary = Object.fromEntries(["p1", "p4", "p5", "p5g", "p6", "p7", "p8", "p9"].map((k) => [k, res[k] ? res[k].pass : "not run"]));
+  res.summary = Object.fromEntries(["p1", "p4", "p5", "p5g", "p6", "p7", "p8", "p9", "p12"].map((k) => [k, res[k] ? res[k].pass : "not run"]));
   fs.writeFileSync(path.join(OUT, "medicion.json"), JSON.stringify(res, null, 1));
   console.log("summary", JSON.stringify(res.summary));
 })().catch((e) => { console.error(e); process.exit(1); });
