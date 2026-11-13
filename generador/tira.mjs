@@ -19,14 +19,14 @@ const WIDE = { n8n: 34 / 22 };
 // Gray filters. From the CV (cv-base.css): "base" is .logo; "invert" is what the light theme does to
 // near-white logos; "bright" is .logo--dark, for dark drawings in the dark theme. The CV's own rest
 // state does not reach 3:1 on the light background (measured: 1.1 to 2.4 for 13 of the 16 logos), so
-// the light theme adds "ink", the same gray at a fifth of the brightness. Which logo gets which is
+// the light theme adds "ink", the same gray at an eighth of the brightness (a fifth left the thin React lines at 2.95:1 on the phone). Which logo gets which is
 // set per theme below, from the contrast measured against the strip's background (pruebas/medir.cjs,
 // check 8): every logo reaches 3:1.
 const FILTERS = {
   base: [["gray"], ["linear", 1.15, 0], ["linear", 0.85, 0.075]],
   invert: [["linear", -1, 1], ["gray"], ["linear", 0.85, 0.075]],
   bright: [["gray"], ["linear", 1.9, 0], ["linear", 0.85, 0.075]],
-  ink: [["gray"], ["linear", 0.2, 0], ["linear", 0.85, 0.075]],
+  ink: [["gray"], ["linear", 0.12, 0], ["linear", 0.85, 0.075]],
 };
 const DARK_DRAWINGS = ["typescript", "python", "postgresql", "git", "docker", "n8n", "claude"];
 const NEAR_WHITE = ["nextjs", "vercel", "expo"];
