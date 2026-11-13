@@ -1,0 +1,39 @@
+{
+  "schema": 1,
+  "lang": "en",
+  "cv": "https://www.kairomx.tech/cv/index.html?lang=en",
+  "window": { "title": "MSO · PORTFOLIO", "titleAccent": ".EXE" },
+  "tabs": [
+    { "id": "home", "label": "Home", "href": "https://www.kairomx.tech/cv/index.html?lang=en#inicio" },
+    { "id": "projects", "label": "Projects", "href": "https://www.kairomx.tech/cv/index.html?lang=en#proyectos" },
+    { "id": "stack", "label": "Stack", "href": "https://www.kairomx.tech/cv/index.html?lang=en#stack" },
+    { "id": "experience", "label": "Experience", "href": "https://www.kairomx.tech/cv/index.html?lang=en#entrenamiento-ia" },
+    { "id": "about", "label": "About", "href": "https://www.kairomx.tech/cv/index.html?lang=en#sobre-mi" },
+    { "id": "contact", "label": "Contact", "href": "https://www.kairomx.tech/cv/index.html?lang=en#contacto" }
+  ],
+  "hero": {
+    "name": "Marco Sebastián Ortega Molina",
+    "role": "Full-stack developer · AI trainer",
+    "titleLine1": { "lead": "I build", "accent": "software." },
+    "titleLine2": { "lead": "I train", "accent": "AI." },
+    "pitch": [
+      { "text": "I build ", "strong": false },
+      { "text": "web and mobile applications", "strong": true },
+      { "text": " with integrated artificial intelligence.", "strong": false }
+    ],
+    "alt": "Marco Sebastián Ortega Molina. Full-stack developer · AI trainer. I build software. I train AI. I build web and mobile applications with integrated artificial intelligence."
+  },
+  "buttons": [
+    { "id": "projects", "label": "View projects", "href": "https://www.kairomx.tech/cv/index.html?lang=en#proyectos" },
+    { "id": "contact", "label": "Contact me", "href": "https://www.kairomx.tech/cv/index.html?lang=en#contacto" },
+    { "id": "cv", "label": "Download CV", "href": "https://www.kairomx.tech/cv/pdf/cv-en.pdf" }
+  ],
+  "status": {
+    "parts": [
+      { "text": "Open to ", "strong": false },
+      { "text": "remote opportunities", "strong": true }
+    ],
+    "href": "https://www.kairomx.tech/cv/index.html?lang=en#contacto",
+    "alt": "Open to remote opportunities"
+  }
+}
