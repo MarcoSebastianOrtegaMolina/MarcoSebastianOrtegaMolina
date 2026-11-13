@@ -40,7 +40,7 @@ export function build(data, src) {
         const hash = crypto.createHash("sha256").update(svg).digest("hex").slice(0, 8);
         const base = `${piece.id}-${layout}-${theme}${animated && motion === "still" ? "-still" : ""}`;
         files.push({ name: `${base}-${hash}.svg`, base, content: svg, bytes: Buffer.byteLength(svg), row: row.id, piece: piece.id, layout, theme, motion, animated,
-          viewW: lpiece.w, viewH: lrow.h, texts });
+          viewX: lpiece.x, viewW: lpiece.w, viewH: lrow.h, texts });
       }
     }
   }

@@ -61,7 +61,9 @@ function textItem(x, y, runs, size, opts = {}) {
   const spacing = opts.spacing || 0;
   const width = runs.reduce((s, r) => s + measure(r.text, r.face, size, spacing), 0);
   const x0 = opts.anchor === "middle" ? x - width / 2 : x;
-  return { kind: "text", x0, x1: x0 + width, y0: y - size * 0.75, y1: y + size * 0.25, size, runs, label: opts.label || runs.map((r) => r.text).join(""), markup: textEl(x, y, runs, size, opts) };
+  let at = x0;
+  const spans = runs.map((r) => { const w = measure(r.text, r.face, size, spacing); const o = { ...r, x0: at, x1: at + w }; at += w; return o; });
+  return { kind: "text", x0, x1: x0 + width, y0: y - size * 0.75, y1: y + size * 0.25, size, runs: spans, label: opts.label || runs.map((r) => r.text).join(""), markup: textEl(x, y, runs, size, opts) };
 }
 const shape = (markup) => ({ kind: "shape", markup });
 
@@ -298,5 +300,6 @@ export function pieceSvg(src, theme, layoutObj, row, piece, motion) {
   if (motion === "animated") css += `@media (prefers-reduced-motion:reduce){*{animation:none!important}.avq{display:none}}`;
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${n(piece.w)}" height="${n(h)}" viewBox="${n(x0)} 0 ${n(piece.w)} ${n(h)}"${row.id === "hero" ? ` role="img" aria-label="${esc(piece.alt)}"` : ""}>` +
     (css ? `<style>${css}</style>` : "") + defs + body + `</svg>\n`;
-  return { svg, texts: texts.map((t) => ({ label: t.label, x0: Math.max(t.x0, x0), x1: Math.min(t.x1, x1), y0: t.y0, y1: t.y1, size: t.size, faces: t.runs.map((r) => r.face), fills: t.runs.map((r) => r.fill) })) };
+  return { svg, texts: texts.map((t) => ({ label: t.label, y0: t.y0, y1: t.y1, size: t.size,
+    runs: t.runs.map((r) => ({ text: r.text, face: r.face, fill: r.fill, x0: Math.max(r.x0, x0), x1: Math.min(r.x1, x1), full: r.x1 - r.x0 })).filter((r) => r.x1 > r.x0) })) };
 }
