@@ -43,6 +43,9 @@ function bbox(d) {
   return b;
 }
 
+// The still drawing is the inner markup itself.
+export const avatarStill = (raw, theme) => avatarInner(raw, theme);
+
 // Inner markup of the drawing (everything inside its <svg>), with the theme colors in place of the
 // CSS variables the CV uses.
 export function avatarInner(raw, theme) {
@@ -62,7 +65,11 @@ export function avatarInner(raw, theme) {
 export function avatarAnimated(raw, theme, bg) {
   let inner = avatarInner(raw, theme);
   const skin = theme.avatar.fill === "none" ? bg : theme.avatar.fill;
-  let defs = "", lids = "", keyframes = "", minRadius = Infinity;
+  // Dark theme: the face is filled, so the lids are patches of skin color drawn over the eye. Light
+  // theme: the face is only a line drawing over the window's grid, so the lids are a mask that hides
+  // the drawing under them and lets the grid show through; only the closed-eye line is drawn.
+  const light = theme.avatar.fill === "none";
+  let defs = "", lids = "", maskShapes = "", lines = "", keyframes = "", minRadius = Infinity;
   const geometry = {};
   for (const side of ["l", "r"]) {
     const re = new RegExp(`(<g id="av-pupil-${side}")>(<path[^>]* d="([^"]*)"[^>]*/>)(</g>)`);
@@ -93,9 +100,14 @@ export function avatarAnimated(raw, theme, bg) {
       const pts = [...q.rim, [q.rim[q.rim.length - 1][0], AVATAR_H], [q.rim[0][0], AVATAR_H]];
       defs += `<clipPath id="av-rim-${side}"><polygon points="${pts.map((p) => p.join(",")).join(" ")}"/></clipPath>`;
     }
-    const lidsMarkup = `<g clip-path="url(#av-eye-${side})"><path class="av-low-${side}" d="${lower}" fill="${skin}"/>` +
-      `<g class="av-up-${side}"><path d="${upper}" fill="${skin}"/><path d="${line}" fill="none" stroke="${theme.avatar.stroke}" stroke-width="${LINE_W}" stroke-linecap="round"/></g></g>`;
-    lids += q.rim ? `<g clip-path="url(#av-rim-${side})">${lidsMarkup}</g>` : lidsMarkup;
+    const clip = (m) => { const e = `<g clip-path="url(#av-eye-${side})">${m}</g>`; return q.rim ? `<g clip-path="url(#av-rim-${side})">${e}</g>` : e; };
+    const stroke = `<path d="${line}" fill="none" stroke="${theme.avatar.stroke}" stroke-width="${LINE_W}" stroke-linecap="round"/>`;
+    if (light) {
+      maskShapes += clip(`<path class="av-low-${side}" d="${lower}" fill="#000"/><path class="av-up-${side}" d="${upper}" fill="#000"/>`);
+      lines += clip(`<g class="av-up-${side}">${stroke}</g>`);
+    } else {
+      lids += clip(`<path class="av-low-${side}" d="${lower}" fill="${skin}"/><g class="av-up-${side}"><path d="${upper}" fill="${skin}"/>${stroke}</g>`);
+    }
     // Blink cycle of 7 s from 2.5 s: two blinks (18-24 % and 55-61 %): 180 ms closing, 60 ms closed,
     // 180 ms opening, at an even pace.
     const kf = (name, dy) => `@keyframes ${name}{0%,18%,24%,55%,61%,100%{transform:translateY(${dy}px)}20.571%,21.429%,57.571%,58.429%{transform:translateY(0)}}`;
@@ -109,7 +121,8 @@ export function avatarAnimated(raw, theme, bg) {
   const S = (1 + (GLANCE + 6) / minRadius).toFixed(3);
   // The lids go inside av-feat, after the pupils.
   if (!/<\/g><\/g>\s*$/.test(inner)) throw new Error("avatar-marco.svg: unexpected end of the drawing");
-  inner = inner.replace(/<\/g><\/g>\s*$/, `${lids}</g></g>`);
+  if (light) defs += `<mask id="av-lids" maskUnits="userSpaceOnUse" x="0" y="0" width="${AVATAR_W}" height="${AVATAR_H}"><rect width="${AVATAR_W}" height="${AVATAR_H}" fill="#fff"/>${maskShapes}</mask>`;
+  else inner = inner.replace(/<\/g><\/g>\s*$/, `${lids}</g></g>`);
   // Build-up: a grid of 63 x 65 squares of 31 units (35 wide, so they overlap and leave no seams)
   // that fade out in 24 waves from the centre outwards, with some randomness.
   const P = 31, Q = 35, WAVES = 24, T0 = 0.15, DT = 0.085;
@@ -129,6 +142,6 @@ export function avatarAnimated(raw, theme, bg) {
     `.av-look{transform-box:fill-box;transform-origin:50% 50%;animation:av-look 7s ease-in-out 2.5s infinite}` +
     `@keyframes av-look{0%,30%,48%,100%{transform:translateX(0) scale(1)}33%,38%{transform:translateX(-${GLANCE}px) scale(${S})}41%,45%{transform:translateX(${GLANCE}px) scale(${S})}}` +
     keyframes;
-  const markup = `${inner}<g fill="${bg}">${cover}</g>`;
+  const markup = `${light ? `<g mask="url(#av-lids)">${inner}</g>${lines}` : inner}<g fill="${bg}">${cover}</g>`;
   return { markup, defs, css, geometry };
 }
