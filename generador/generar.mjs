@@ -28,8 +28,10 @@ function arg(name) {
 
 export function buildFromDisk(dataPath = path.join(root, "datos/perfil.en.json")) {
   const text = dataPath === "-" ? fs.readFileSync(0, "utf8") : fs.readFileSync(dataPath, "utf8");
+  // A byte order mark at the start is not part of the JSON: it is dropped.
+  const json = text.charCodeAt(0) === 0xfeff ? text.slice(1) : text;
   let raw;
-  try { raw = JSON.parse(text); } catch (e) { throw new Error(`the data file is not valid JSON: ${e.message}`); }
+  try { raw = JSON.parse(json); } catch (e) { throw new Error(`the data file is not valid JSON: ${e.message}`); }
   const data = validate(raw);
   return build(data, loadSources(path.join(here, "fuentes")));
 }

@@ -14,6 +14,8 @@ function text(v, where, max) {
   if ([...v].length > max) throw new DataError(`${where}: ${[...v].length} characters, the cap is ${max}`);
   if (/[<>]/.test(v)) throw new DataError(`${where}: markup characters (< or >) are not allowed`);
   if (/[\u0000-\u001f\u007f-\u009f\u2028\u2029]/.test(v)) throw new DataError(`${where}: control characters are not allowed`);
+  if (/[؜‎‏‪-‮⁦-⁩]/.test(v)) throw new DataError(`${where}: text direction characters (such as U+202E) are not allowed`);
+  if (/[\p{Extended_Pictographic}\p{Regional_Indicator}️‍⃣]/u.test(v)) throw new DataError(`${where}: emoji are not allowed`);
   return v;
 }
 
