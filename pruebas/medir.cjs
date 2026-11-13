@@ -166,19 +166,24 @@ async function shotAt(page, el, t) {
       await page.waitForTimeout(3200);
       const box = await headerBox(page);
       save(`gh-${width}-${theme}.png`, await page.screenshot({ fullPage: true, clip: { x: box.x - 6, y: box.y - 6, width: box.width + 12, height: box.height + 12 } }));
-      const imgs = await page.$$(PICS);
-      for (const el of imgs) {
-        const info = await el.evaluate((i) => ({ src: i.currentSrc, w: i.getBoundingClientRect().width }));
+      // Each image is scrolled to the middle of the viewport (clear of GitHub's sticky bars) and the
+      // viewport is captured; full-page captures shift GitHub's layout by a few pixels.
+      const count = await page.evaluate((sel) => document.querySelectorAll(sel).length, PICS);
+      for (let k = 0; k < count; k++) {
+        await page.evaluate(({ sel, k }) => document.querySelectorAll(sel)[k].scrollIntoView({ block: "center", behavior: "instant" }), { sel: PICS, k });
+        await page.waitForTimeout(300);
+        const full = await page.screenshot();
+        const info = await page.evaluate(({ sel, k }) => { const i = document.querySelectorAll(sel)[k]; const b = i.getBoundingClientRect(); return { src: i.currentSrc, w: b.width, x: b.left, y: b.top }; }, { sel: PICS, k });
         const f = fileByBase.get(baseOf(info.src));
         if (!f) { sizes.push({ width, theme, error: "unknown file " + baseOf(info.src) }); continue; }
         const scale = info.w / f.viewW;
-        const png = f.texts.length ? await el.screenshot() : null;
+
         for (const t of f.texts) {
           sizes.push({ width, theme, file: f.base, text: t.label, px: r3(t.size * scale) });
           for (const run of t.runs) {
             if (run.x1 - run.x0 < 0.5 * run.full) continue; // a run cut by the piece edge is measured in the piece that holds most of it
-            const b = [(run.x0 - f.viewX) * scale * 2, t.y0 * scale * 2, (run.x1 - run.x0) * scale * 2, (t.y1 - t.y0) * scale * 2];
-            const c = await contrast(lab, png, b);
+            const b = [(info.x + (run.x0 - f.viewX) * scale) * 2, (info.y + t.y0 * scale) * 2, (run.x1 - run.x0) * scale * 2, (t.y1 - t.y0) * scale * 2];
+            const c = await contrast(lab, full, b);
             const px = t.size * scale;
             const large = px >= 24 || (px >= 18.66 && /600|700/.test(run.face));
             contrasts.push({ width, theme, file: f.base, text: run.text.trim().slice(0, 40), px: r3(px), large, need: large ? 3 : 4.5, ...c, pass: c.ratio !== null && c.ratio >= (large ? 3 : 4.5) });
@@ -304,11 +309,11 @@ async function shotAt(page, el, t) {
   }
 
   // ---------- 10. sketch and header side by side ----------
-  if (fs.existsSync(SKETCH) && fs.existsSync(path.join(OUT, "gh-1280-dark.png"))) {
+  if (want("10") && fs.existsSync(SKETCH) && fs.existsSync(path.join(OUT, "gh-1280-dark.png"))) {
     const page = await (await nav.newContext({ viewport: { width: 1800, height: 700 } })).newPage();
     const b64 = (p) => fs.readFileSync(p).toString("base64");
     // The sketch PNG is at 2x; its window (with shadow) spans x 98-1798 and y 214-1158.
-    await page.setContent(`<!doctype html><style>body{margin:0;background:#0d1117;display:flex;gap:24px;padding:16px;font:14px sans-serif;color:#e6edf3}div{width:860px}.c{width:860px;height:480px;overflow:hidden;position:relative}.c img{position:absolute}</style>
+    await page.setContent(`<!doctype html><style>body{margin:0;background:#0d1117;display:flex;gap:24px;padding:16px;font:14px sans-serif;color:#e6edf3}div{width:860px}.c{width:860px;height:530px;overflow:hidden;position:relative}.c img{position:absolute}</style>
 <div>Sketch (boceto 3)<div class="c"><img src="data:image/png;base64,${b64(SKETCH)}" style="width:${1888 / 2 * 860 / 850}px;left:${-98 / 2 * 860 / 850}px;top:${-214 / 2 * 860 / 850}px"></div></div>
 <div>Header on github.com, 1280 px, dark<div class="c"><img src="data:image/png;base64,${b64(path.join(OUT, "gh-1280-dark.png"))}" style="width:860px"></div></div>`);
     await page.waitForTimeout(300);
