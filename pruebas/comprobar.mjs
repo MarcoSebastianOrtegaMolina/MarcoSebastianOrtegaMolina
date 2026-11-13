@@ -213,7 +213,7 @@ if (C) {
     for (const layout of C.LAYOUT_ORDER) for (const dark of [true, false]) for (const reduce of [true, false]) {
       const env = { width: Math.min(C.LAYOUTS[layout].lastViewport, C.SWEEP.to), dark, reduce };
       const files = pictures.map((p) => (p.sources.find((x) => matches(x.media, env)) || { file: p.img }).file);
-      const bytes = files.reduce((t, f) => t + fs.statSync(path.join(ASSETS, f)).size, 0);
+      const bytes = files.reduce((t, f) => t + (fs.existsSync(path.join(ASSETS, f)) ? fs.statSync(path.join(ASSETS, f)).size : Infinity), 0);
       if (bytes > heaviest.bytes) heaviest = { bytes, file, env };
     }
   }
