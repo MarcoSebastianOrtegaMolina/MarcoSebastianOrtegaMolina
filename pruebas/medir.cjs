@@ -503,16 +503,16 @@ async function shotAt(page, el, t) {
   if (want("12") && COVERS) {
     const out = [];
     for (const f of all.files.filter((f) => f.section === "projects" && f.lang === LANG && f.theme === "dark")) {
-      const m = f.content.match(/href="data:image\/jpeg;base64,([^"]+)"/);
+      const m = f.content.match(/href="data:(image\/(?:jpeg|webp));base64,([^"]+)"/);
       const slug = f.cover.slug, orig = path.join(COVERS, `${slug}.webp`);
       const page = await (await nav.newContext({ viewport: { width: f.cover.px + 20, height: f.cover.py + 20 } })).newPage();
       const html = path.join(OUT, `cover-${slug}-${f.layout}.html`);
-      fs.writeFileSync(html, `<!doctype html><style>body{margin:0}img{display:block;width:${f.cover.px}px;height:${f.cover.py}px}</style><img id="o" src="${pathToFileURL(orig).href}"><img id="j" src="data:image/jpeg;base64,${m[1]}">`);
+      fs.writeFileSync(html, `<!doctype html><style>body{margin:0}img{display:block;width:${f.cover.px}px;height:${f.cover.py}px}</style><img id="o" src="${pathToFileURL(orig).href}"><img id="j" src="data:${m[1]};base64,${m[2]}">`);
       await page.goto(pathToFileURL(html).href);
       await page.waitForFunction(() => [...document.images].every((i) => i.complete && i.naturalWidth > 0));
       const nat = await page.evaluate(() => [...document.images].map((i) => [i.naturalWidth, i.naturalHeight]));
       const o = await page.locator("#o").screenshot(), j = await page.locator("#j").screenshot();
-      save(`cover-${slug}-${f.layout}-orig.png`, o); save(`cover-${slug}-${f.layout}-jpeg.png`, j);
+      save(`cover-${slug}-${f.layout}-orig.png`, o); save(`cover-${slug}-${f.layout}-embedded.png`, j);
       const diff = await compare(lab, o, j);
       const mean = await lab.evaluate(async ({ a, b }) => {
         const load = (s) => new Promise((ok) => { const i = new Image(); i.onload = () => ok(i); i.src = "data:image/png;base64," + s; });

@@ -122,6 +122,11 @@ const broken = {
   "project title over its cap": [(d) => { d.projects[1].title = "W".repeat(61); }, "the cap is 60"],
   "project without a cover": [(d) => { d.projects[0].slug = "otro"; }, 'no cover for "otro"'],
   "project missing field": [(d) => { delete d.projects[2].sub; }, 'missing field "sub"'],
+  // B4: every link carries the language of its file.
+  "B4 English project link in the Spanish file": [(d) => { d.projects[0].href = d.projects[0].href.replace("lang=es", "lang=en"); }, "projects[0].href: the link says lang=en", "es"],
+  "B4 Spanish tab link in the English file": [(d) => { d.tabs[2].href = d.tabs[2].href.replace("lang=en", "lang=es"); }, "tabs[2].href: the link says lang=es", "en"],
+  "B4 English PDF in the Spanish file": [(d) => { d.buttons[2].href = "https://www.kairomx.tech/cv/pdf/cv-en.pdf"; }, "the PDF is cv-en.pdf", "es"],
+  "B4 link without lang": [(d) => { d.stack.href = "https://www.kairomx.tech/cv/index.html#stack"; }, "no lang", "en"],
   // M1: texts at their cap that do not fit their place in some layout.
   "M1 window title at its cap": [(d) => { d.window.title = "W".repeat(24); d.window.titleAccent = "W".repeat(8); }, "window.title"],
   "M1 tab label at its cap": [(d) => { d.tabs[3].label = "W".repeat(12); }, "tabs["],
@@ -147,7 +152,7 @@ for (const [label, [mutate, word, lang = "en"]] of Object.entries(broken)) {
   const r = run(input);
   const after = snapshot();
   const msg = r.stderr.trim();
-  const tag = label.startsWith("M1") ? "2/M1" : /U\+|emoji|check mark/.test(label) ? "data" : "2";
+  const tag = label.startsWith("M1") ? "2/M1" : label.startsWith("B4") ? "B4" : /U\+|emoji|check mark/.test(label) ? "data" : "2";
   check(`${tag}. broken data, ${label}: fails with a clear message and changes nothing`, r.status !== 0 && before === after && msg.includes(word), `exit ${r.status}; ${msg || r.stdout.trim()}`);
 }
 // Ordinary text that the symbol filter must accept: accents, ñ, typographic quotes, the middle dot, © ® ™.
@@ -164,6 +169,12 @@ for (const lang of ["en", "es"]) {
 }
 
 // ---------- 3. the SVG files ----------
+// The only images an SVG may embed: a JPEG or a WebP written into the file itself.
+const imageOk = (href) => /^data:image\/(jpeg|webp);base64,[A-Za-z0-9+/=]+$/.test(href);
+{
+  const yes = ["data:image/webp;base64,UklGRg==", "data:image/jpeg;base64,/9j/4A=="], no = ["data:image/png;base64,iVBORw==", "data:image/svg+xml;base64,PHN2Zz4=", "https://example.com/a.webp", "a.webp", "data:text/html;base64,PGI+"];
+  check("3. the embedded-image rule accepts JPEG and WebP data and rejects anything else", yes.every(imageOk) && !no.some(imageOk), `${yes.filter((h) => !imageOk(h)).length + no.filter(imageOk).length} wrong of ${yes.length + no.length}`);
+}
 const svgs = fs.readdirSync(ASSETS).filter((f) => f.endsWith(".svg")).sort();
 let worst = { f: null, bytes: 0 };
 const bad = [];
@@ -175,8 +186,8 @@ for (const f of svgs) {
   const http = (s.match(/https?:\/\//gi) || []).length - (s.match(/xmlns="http:\/\/www\.w3\.org\/2000\/svg"/g) || []).length;
   const tags = s.match(/<[^>]*>/g) || [];
   const onAttr = tags.filter((t) => /\son[a-z]+\s*=/i.test(t)).length;
-  const images = [...s.matchAll(/<image\b[^>]*\shref="([^"]{0,40})/g)].map((m) => m[1]);
-  const badImages = images.filter((h) => !/^data:image\/(jpeg|webp);base64,/.test(h)).length + (s.match(/<image\b/g) || []).length - images.length;
+  const images = [...s.matchAll(/<image\b[^>]*\shref="([^"]*)"/g)].map((m) => m[1]);
+  const badImages = images.filter((h) => !imageOk(h)).length + (s.match(/<image\b/g) || []).length - images.length;
   const problems = [wf && `not well-formed: ${wf}`, badImages && `${badImages} images that are not data:image/jpeg or webp`, http && `${http} http addresses`, /<script/i.test(s) && "<script>", /foreignObject/i.test(s) && "foreignObject", onAttr && `${onAttr} on* attributes`, (!C || bytes > C.MAX_SVG) && `${(bytes / 1024).toFixed(1)} KB`].filter(Boolean);
   if (problems.length) bad.push(`${f}: ${problems.join(", ")}`);
 }
@@ -293,6 +304,53 @@ if (C) {
   }
   const ignore = fs.existsSync(path.join(root, ".gitignore")) && /^_trabajo\/$/m.test(fs.readFileSync(path.join(root, ".gitignore"), "utf8"));
   check("7. no internal leftovers or unused imports in versioned files, and .gitignore keeps _trabajo/ out", !leftovers.length && ignore, `${leftovers.join(", ")}${ignore ? "" : "; .gitignore without _trabajo/"}`);
+}
+
+// ---------- M3: the middle layout keeps the approved buttons ----------
+// One label line per button (icon above), at least 9 units between the label and each side of its
+// button, and the header as tall as the approved one (387 units in ae1a6a3) in English.
+{
+  const problems = [];
+  for (const f of built.files.filter((f) => f.row === "buttons" && f.layout === "tab" && f.theme === "dark")) {
+    const lines = f.texts.filter((t) => t.label.startsWith("button"));
+    if (lines.length !== 1) problems.push(`${f.base}: ${lines.length} label lines`);
+    if (!f.button) { problems.push(`${f.base}: no button geometry`); continue; }
+    for (const t of lines) for (const r of t.runs) {
+      const side = Math.min(r.x0 - f.button.x, f.button.x + f.button.w - r.x1);
+      if (side < 9 - 0.01) problems.push(`${f.base}: ${side.toFixed(1)} units to the side`);
+    }
+  }
+  const h = built.langs.en.sizes.tab.height;
+  if (h !== 387) problems.push(`English middle header ${h} units tall (approved: 387)`);
+  check("M3. middle layout: one label line per button, 9 units or more to each side, English header 387 units tall", !problems.length, problems.slice(0, 4).join("; ") || "6 buttons");
+}
+
+// ---------- M2: covers in WebP; the knowledge-graph one lossless where it fits ----------
+{
+  const problems = [];
+  for (const f of built.files.filter((f) => f.section === "projects")) {
+    const m = f.content.match(/href="data:image\/(\w+);base64,([^"]+)"/);
+    if (!m || m[1] !== "webp") { problems.push(`${f.base}: ${m ? m[1] : "no image"}`); continue; }
+    const buf = Buffer.from(m[2], "base64");
+    let lossless = false;
+    for (let i = 12; i + 8 <= buf.length; i += 8 + buf.readUInt32LE(i + 4) + (buf.readUInt32LE(i + 4) & 1)) {
+      const c = buf.toString("ascii", i, i + 4);
+      if (c === "VP8L" || c === "VP8 ") { lossless = c === "VP8L"; break; }
+    }
+    if (f.piece === "proj-conocimiento" && f.layout !== "mob" && !lossless) problems.push(`${f.base}: not lossless`);
+  }
+  check("M2. every project cover is WebP, and the knowledge-graph cover is lossless on desktop and middle", !problems.length, problems.slice(0, 4).join("; ") || `${built.files.filter((f) => f.section === "projects").length} covers`);
+}
+
+// ---------- B3: the logos' license note ----------
+{
+  const note = fs.existsSync(path.join(root, "generador/fuentes/stack/LICENSES.md")) ? fs.readFileSync(path.join(root, "generador/fuentes/stack/LICENSES.md"), "utf8") : "";
+  const libs = ["material-icon-theme", "devicon", "teenyicons", "vscode-icons", "svgl", "radix-icons"];
+  const missing = [...libs.filter((l) => !new RegExp(`^- ${l}: Copyright`, "m").test(note)).map((l) => `${l} copyright line`),
+    ...(/Permission is hereby granted, free of charge/.test(note) && /shall be included in all copies/.test(note) ? [] : ["MIT permission text"]),
+    ...(/Light theme:/.test(note) && /brightness\(\.12\)/.test(note) ? [] : ["light theme filter"])];
+  const marked = (note.match(/Copyright \(c\) \[MISSING\]/g) || []).length;
+  check("B3. the logos' license note has a copyright line per MIT library, the MIT text and the light-theme filter", !missing.length, missing.join(", ") || `${marked} of ${libs.length} copyright lines still marked MISSING`);
 }
 
 // ---------- N1: nothing above changed the tree ----------
