@@ -50,16 +50,20 @@ above come from six MIT-licensed libraries:
 | svgl | `supabase.svg` |
 | radix-icons | `vercel.svg` |
 
-Copyright notice of each library: MISSING. The sources these files were copied from record the
-library and its license but not the copyright line, and it is not copied here from memory. Before
-this README is published, each line must be copied from that library's own LICENSE file:
+Copyright notice of each library, copied from its own LICENSE file (read on 2026-11-18):
 
-- material-icon-theme: Copyright (c) [MISSING]
-- devicon: Copyright (c) [MISSING]
-- teenyicons: Copyright (c) [MISSING]
-- vscode-icons: Copyright (c) [MISSING]
-- svgl: Copyright (c) [MISSING]
-- radix-icons: Copyright (c) [MISSING]
+- material-icon-theme: Copyright (c) 2025 Material Extensions
+  (https://github.com/material-extensions/vscode-material-icon-theme/blob/main/LICENSE)
+- devicon: Copyright (c) 2015 konpa
+  (https://github.com/devicons/devicon/blob/master/LICENSE)
+- teenyicons: Copyright (c) 2020, Anja van Staden
+  (LICENSE inside the npm package teenyicons@0.4.1; its GitHub repository no longer resolves)
+- vscode-icons: Copyright The vscode-icons Contributors
+  (https://github.com/vscode-icons/vscode-icons/blob/master/LICENSE)
+- svgl: Copyright (c) 2022 Pablo Hdez
+  (https://github.com/pheralb/svgl/blob/main/LICENSE)
+- radix-icons: Copyright (c) 2022 WorkOS
+  (https://github.com/radix-ui/icons/blob/main/LICENSE)
 
 Permission notice (the MIT license text, the same for the six):
 
