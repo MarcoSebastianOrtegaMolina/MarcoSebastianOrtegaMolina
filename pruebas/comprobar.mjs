@@ -11,9 +11,14 @@
 // Also: legibility and height per composition, M1 (texts that do not fit), M2 (shared numbers in one
 // place), data (text direction, emoji, invisible characters, byte order mark), 6 (buttons), 7
 // (leftovers) and N1 (the checks leave the tree as it was).
+// Daily update: U1 (each embedded cover is the CV's WebP byte for byte), U2 (the data files are in the
+// format generador/actualizar.mjs writes), U3 (actualizar.mjs with today's data changes nothing; with
+// broken data or the network down it fails, says why and changes nothing; offline, through
+// pruebas/red-falsa.mjs) and U4 (the workflow: pinned actions, least permissions, concurrency).
 import fs from "node:fs";
 import path from "node:path";
 import crypto from "node:crypto";
+import os from "node:os";
 import { spawnSync } from "node:child_process";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
@@ -325,21 +330,106 @@ if (C) {
   check("M3. middle layout: one label line per button, 9 units or more to each side, English header 387 units tall", !problems.length, problems.slice(0, 4).join("; ") || "6 buttons");
 }
 
-// ---------- M2: covers in WebP; the knowledge-graph one lossless where it fits ----------
+// ---------- U1: each embedded cover is the CV's own WebP, byte for byte ----------
 {
   const problems = [];
+  const dir = path.join(root, "generador/fuentes/proyectos");
   for (const f of built.files.filter((f) => f.section === "projects")) {
-    const m = f.content.match(/href="data:image\/(\w+);base64,([^"]+)"/);
-    if (!m || m[1] !== "webp") { problems.push(`${f.base}: ${m ? m[1] : "no image"}`); continue; }
-    const buf = Buffer.from(m[2], "base64");
-    let lossless = false;
-    for (let i = 12; i + 8 <= buf.length; i += 8 + buf.readUInt32LE(i + 4) + (buf.readUInt32LE(i + 4) & 1)) {
-      const c = buf.toString("ascii", i, i + 4);
-      if (c === "VP8L" || c === "VP8 ") { lossless = c === "VP8L"; break; }
-    }
-    if (f.piece === "proj-conocimiento" && f.layout !== "mob" && !lossless) problems.push(`${f.base}: not lossless`);
+    const m = f.content.match(/href="data:image\/webp;base64,([^"]+)"/);
+    const file = path.join(dir, `${f.cover.slug}.webp`);
+    if (!m) problems.push(`${f.base}: no WebP cover`);
+    else if (!fs.existsSync(file) || !Buffer.from(m[1], "base64").equals(fs.readFileSync(file))) problems.push(`${f.base}: differs from ${f.cover.slug}.webp`);
   }
-  check("M2. every project cover is WebP, and the knowledge-graph cover is lossless on desktop and middle", !problems.length, problems.slice(0, 4).join("; ") || `${built.files.filter((f) => f.section === "projects").length} covers`);
+  const extra = fs.readdirSync(dir).filter((f) => !built.files.some((x) => x.cover && `${x.cover.slug}.webp` === f));
+  if (extra.length) problems.push(`unused: ${extra.join(", ")}`);
+  check("U1. every embedded project cover is byte for byte generador/fuentes/proyectos/<slug>.webp, and nothing else is in that folder", !problems.length, problems.slice(0, 4).join("; ") || `${built.files.filter((f) => f.section === "projects").length} images, ${fs.readdirSync(dir).length} covers`);
+}
+
+// ---------- U2 and U3: the daily update (generador/actualizar.mjs) ----------
+const act = await import(pathToFileURL(path.join(root, "generador/actualizar.mjs")).href);
+{
+  const off = ["en", "es"].filter((l) => act.dataText(JSON.parse(fs.readFileSync(path.join(root, `datos/perfil.${l}.json`), "utf8"))) !== fs.readFileSync(path.join(root, `datos/perfil.${l}.json`), "utf8"));
+  check("U2. datos/perfil.en.json and perfil.es.json are in the format actualizar.mjs writes", !off.length, off.length ? `${off.join(", ")} differ` : "both");
+}
+{
+  // The published file as kairomx.tech would serve it, from today's data and covers; the network is a
+  // test double that answers from local files (pruebas/red-falsa.mjs).
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "actualizar-"));
+  const slugs = good.en.projects.filter((p) => p.featured).map((p) => p.slug);
+  const coverUrl = (slug) => `${act.COVER_PREFIX}${slug}/portada.webp`;
+  const published = { schema: 1, en: good.en, es: good.es, covers: Object.fromEntries(slugs.map((s) => [s, coverUrl(s)])) };
+  const coverFile = (slug) => path.join(root, `generador/fuentes/proyectos/${slug}.webp`);
+  const net = (data, covers = {}) => ({ [act.DATA_URL]: data, ...Object.fromEntries(slugs.map((s) => [coverUrl(s), covers[s] || { file: coverFile(s), type: "image/webp" }])) });
+  const fake = pathToFileURL(path.join(root, "pruebas/red-falsa.mjs")).href;
+  const file = (name, content) => { const f = path.join(tmp, name); fs.writeFileSync(f, content); return f; };
+  let n = 0;
+  const json = (mutate) => { const d = structuredClone(published); mutate(d); return file(`perfil-${n++}.json`, JSON.stringify(d)); };
+  const runAct = (args, answers) => spawnSync(process.execPath, ["--import", fake, path.join(root, "generador/actualizar.mjs"), ...args], { encoding: "utf8", env: { ...process.env, RED_FALSA: JSON.stringify(answers) } });
+  const pngFile = file("no-webp.webp", Buffer.from("89504e470d0a1a0a0000000d49484452000000010000000108060000001f15c4890000000d4944415478da63f8ffff3f0005fe02fea7d6a4c50000000049454e44ae426082", "hex"));
+  // Control: good data through the network and through --from: nothing to change.
+  {
+    const a = runAct(["--check"], net({ file: file("good.json", JSON.stringify(published)), type: "application/json" }));
+    const b = runAct(["--from", file("good-from.json", JSON.stringify(published)), "--check"], net("down"));
+    check("U3. actualizar.mjs with today's data (from the network and with --from) finds nothing to change", a.status === 0 && b.status === 0 && /up to date/.test(a.stdout) && /up to date/.test(b.stdout), `exit ${a.status} and ${b.status}; ${(a.stdout + a.stderr).trim()} | ${(b.stdout + b.stderr).trim()}`);
+  }
+  // Broken cases: [how to build the network answers (or --from arguments), a word the message must contain].
+  const viaNet = (mutate) => ({ file: json(mutate), type: "application/json" });
+  const cases = {
+    "link outside kairomx.tech": [() => net(viaNet((d) => { d.en.tabs[1].href = "https://example.com/cv/"; })), "links must start"],
+    "text that does not fit its place": [() => net(viaNet((d) => { d.es.window.title = "W".repeat(24); d.es.window.titleAccent = "W".repeat(8); })), "window.title"],
+    "emoji": [() => net(viaNet((d) => { d.en.status.parts[1].text = "remote \u{1F680}"; })), "emoji"],
+    "language blocks swapped": [() => net(viaNet((d) => { [d.en, d.es] = [d.es, d.en]; })), 'the block says lang "es"'],
+    "cover outside its folder": [() => net(viaNet((d) => { d.covers[slugs[1]] = "https://www.kairomx.tech/cv/evidencias/../img/og.webp"; })), `covers.${slugs[1]}`],
+    "cover on another site": [() => net(viaNet((d) => { d.covers[slugs[0]] = `https://kairomx.tech.example.com/cv/evidencias/${slugs[0]}/portada.webp`; })), `covers.${slugs[0]}`],
+    "cover that is not WebP (PNG served as image/webp)": [() => net(viaNet(() => {}), { [slugs[2]]: { file: pngFile, type: "image/webp" } }), "not a WebP"],
+    "cover served as another type": [() => net(viaNet(() => {}), { [slugs[0]]: { file: coverFile(slugs[0]), type: "image/png" } }), 'expected "image/webp"'],
+    "huge data file from the network": [() => net({ size: 5000000, type: "application/json" }), "the cap"],
+    "huge data file with --from": [() => ({ args: ["--from", file("huge.json", Buffer.alloc(5000000, 32))], net: net("down") }), "the cap is"],
+    "huge cover": [() => net(viaNet(() => {}), { [slugs[1]]: { size: 5000000, type: "image/webp" } }), "the cap"],
+    "malformed JSON": [() => net({ file: file("bad.json", "{ not json"), type: "application/json" }), "not valid JSON"],
+    "data file served as HTML": [() => net({ file: file("page.json", JSON.stringify(published)), type: "text/html" }), 'expected "application/json"'],
+    "site answers 404": [() => net({ file: file("nf.json", "{}"), type: "application/json", status: 404 }), "answered 404"],
+    "network down": [() => net("down"), "could not download"],
+    "cover download fails": [() => { const a = net(viaNet(() => {})); a[coverUrl(slugs[2])] = "down"; return a; }, "could not download"],
+  };
+  for (const [label, [make, word]] of Object.entries(cases)) {
+    const m = make();
+    const args = m.args || [], answers = m.args ? m.net : m;
+    const before = treeHash();
+    const r = runAct(args, answers);
+    const msg = r.stderr.trim();
+    check(`U3. actualizar.mjs, ${label}: fails, says why and changes nothing`, r.status === 1 && treeHash() === before && msg.includes(word), `exit ${r.status}; ${msg || r.stdout.trim()}`);
+  }
+  fs.rmSync(tmp, { recursive: true, force: true });
+}
+
+// ---------- U4: the daily workflow ----------
+{
+  const wf = path.join(root, ".github/workflows/actualizar-readme.yml");
+  const y = fs.existsSync(wf) ? fs.readFileSync(wf, "utf8") : "";
+  const lines = y.split("\n");
+  const problems = [];
+  if (!y) problems.push("no workflow");
+  const uses = lines.filter((l) => /^\s*-?\s*uses:/.test(l));
+  for (const l of uses) if (!/uses: [\w.-]+\/[\w.-]+@[0-9a-f]{40} # v\d+\.\d+\.\d+\s*$/.test(l)) problems.push(`not pinned by full SHA with its version: ${l.trim()}`);
+  const pins = { "actions/checkout": "3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1", "actions/setup-node": "949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0" };
+  for (const [a, pin] of Object.entries(pins)) if (!uses.some((l) => l.includes(`${a}@${pin}`))) problems.push(`${a} is not ${pin}`);
+  const perm = lines.findIndex((l) => l === "permissions:");
+  const permBlock = [];
+  for (let i = perm + 1; perm >= 0 && i < lines.length && /^\s+\S/.test(lines[i]); i++) permBlock.push(lines[i].trim());
+  if (perm < 0 || permBlock.join("|") !== "contents: write") problems.push(`permissions: ${permBlock.join(", ") || "missing"}`);
+  if (lines.filter((l) => /^\s*permissions:/.test(l)).length !== 1) problems.push("permissions set more than once");
+  if (!/^concurrency:\n\s+group: \S+/m.test(y)) problems.push("no concurrency group");
+  const cron = (y.match(/cron: "([^"]+)"/) || [])[1];
+  if (!cron || cron.split(" ")[0] === "0" || cron.split(" ").slice(2).join(" ") !== "* * *") problems.push(`schedule: ${cron || "none"} (once a day, not on the hour)`);
+  if (!/^\s+workflow_dispatch:/m.test(y)) problems.push("no workflow_dispatch");
+  if (y.includes("${{")) problems.push("expressions in the workflow");
+  if (/secrets\.|pull_request_target|curl |wget /.test(y)) problems.push("secrets, pull_request_target or a download in the shell");
+  if (!/node-version: 22\s*$/m.test(y)) problems.push("Node is not 22");
+  const steps = ["node generador/actualizar.mjs", "node pruebas/comprobar.mjs", "git status --porcelain", "git commit -F", "git push"].map((s) => y.indexOf(s));
+  if (steps.some((i) => i < 0) || steps.some((i, k) => k && i < steps[k - 1])) problems.push("steps missing or out of order (update, check, look for changes, commit, push)");
+  if ((y.match(/41898282\+github-actions\[bot\]@users\.noreply\.github\.com$/gm) || []).length !== 2 || (y.match(/: github-actions\[bot\]$/gm) || []).length !== 2) problems.push("commits are not signed by github-actions[bot]");
+  check("U4. the workflow: actions pinned by full SHA (checkout v7.0.1, setup-node v7.1.0), contents: write only, concurrency, daily off the hour and by hand, Node 22, no expressions or secrets, update then check then commit as github-actions[bot] only if something changed", !problems.length, problems.join("; ") || `${uses.length} actions, cron ${cron}`);
 }
 
 // ---------- B3: the logos' license note ----------

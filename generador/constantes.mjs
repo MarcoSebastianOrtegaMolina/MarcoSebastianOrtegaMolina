@@ -35,3 +35,9 @@ export const MAX_VISIT = 3 * 1024 * 1024; // bytes one visit loads (one variant 
 
 // Rows whose images move (they get a still version for reduced motion).
 export const ANIMATED_ROWS = ["hero", "status"];
+
+// What generador/actualizar.mjs accepts from kairomx.tech: the data file and each cover, and how long
+// it waits for each download.
+export const MAX_DATA = 256 * 1024; // bytes of cv/perfil.json
+export const MAX_COVER = 400 * 1024; // bytes per cover (embedded as base64, it must still fit MAX_SVG)
+export const FETCH_TIMEOUT_MS = 20000;

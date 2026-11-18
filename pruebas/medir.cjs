@@ -19,7 +19,7 @@
 //   9  every README link answers 200 (curl -I)
 //  10  the sketch and the desktop dark header side by side
 //  11  the English header against --base, pixel by pixel, in the three compositions and both themes (local)
-//  12  each embedded cover against its original reduced by the browser to the same size (local)
+//  12  each embedded cover is byte for byte the original WebP in --covers (local)
 // Check 4 also measures the blocks under the header: the tech strip and the project row share the
 // header's left and right edges, and the space above each block is the same.
 const fs = require("fs");
@@ -499,36 +499,18 @@ async function shotAt(page, el, t) {
   }
 
   // ---------- 12. covers against their originals ----------
+  // Each embedded cover is the CV's WebP byte for byte (no browser needed).
   const COVERS = arg("--covers");
   if (want("12") && COVERS) {
     const out = [];
-    for (const f of all.files.filter((f) => f.section === "projects" && f.lang === LANG && f.theme === "dark")) {
-      const m = f.content.match(/href="data:(image\/(?:jpeg|webp));base64,([^"]+)"/);
+    for (const f of all.files.filter((f) => f.section === "projects" && f.lang === LANG)) {
+      const m = f.content.match(/href="data:image\/webp;base64,([^"]+)"/);
       const slug = f.cover.slug, orig = path.join(COVERS, `${slug}.webp`);
-      const page = await (await nav.newContext({ viewport: { width: f.cover.px + 20, height: f.cover.py + 20 } })).newPage();
-      const html = path.join(OUT, `cover-${slug}-${f.layout}.html`);
-      fs.writeFileSync(html, `<!doctype html><style>body{margin:0}img{display:block;width:${f.cover.px}px;height:${f.cover.py}px}</style><img id="o" src="${pathToFileURL(orig).href}"><img id="j" src="data:${m[1]};base64,${m[2]}">`);
-      await page.goto(pathToFileURL(html).href);
-      await page.waitForFunction(() => [...document.images].every((i) => i.complete && i.naturalWidth > 0));
-      const nat = await page.evaluate(() => [...document.images].map((i) => [i.naturalWidth, i.naturalHeight]));
-      const o = await page.locator("#o").screenshot(), j = await page.locator("#j").screenshot();
-      save(`cover-${slug}-${f.layout}-orig.png`, o); save(`cover-${slug}-${f.layout}-embedded.png`, j);
-      const diff = await compare(lab, o, j);
-      const mean = await lab.evaluate(async ({ a, b }) => {
-        const load = (s) => new Promise((ok) => { const i = new Image(); i.onload = () => ok(i); i.src = "data:image/png;base64," + s; });
-        const [ia, ib] = await Promise.all([load(a), load(b)]);
-        const px = (im) => { const c = document.createElement("canvas"); c.width = ia.width; c.height = ia.height; const x = c.getContext("2d"); x.drawImage(im, 0, 0); return x.getImageData(0, 0, ia.width, ia.height).data; };
-        const da = px(ia), db = px(ib); let t = 0;
-        for (let i = 0; i < da.length; i += 4) t += (Math.abs(da[i] - db[i]) + Math.abs(da[i + 1] - db[i + 1]) + Math.abs(da[i + 2] - db[i + 2])) / 3;
-        return +(t / (da.length / 4)).toFixed(2);
-      }, { a: o.toString("base64"), b: j.toString("base64") });
-      const ratioOrig = nat[0][0] / nat[0][1], ratioJpeg = nat[1][0] / nat[1][1], ratioShown = f.cover.w / f.cover.h;
-      const aspect = Math.max(Math.abs(ratioJpeg / ratioOrig - 1), Math.abs(ratioShown / ratioOrig - 1));
-      out.push({ slug, layout: f.layout, size: nat[1], original: nat[0], aspectError: +(aspect * 100).toFixed(3), pixelsOver32: diff.pct, meanDiff: mean, pass: aspect < 0.005 && diff.pct < 1 });
-      await page.context().close();
+      const same = !!m && fs.existsSync(orig) && Buffer.from(m[1], "base64").equals(fs.readFileSync(orig));
+      out.push({ slug, layout: f.layout, theme: f.theme, bytes: m ? Buffer.from(m[1], "base64").length : 0, pass: same });
     }
     res.p12 = { covers: out, pass: out.length > 0 && out.every((c) => c.pass) };
-    console.log("12 covers:", res.p12.pass, JSON.stringify(out.map((c) => `${c.slug}-${c.layout} ${c.size.join("x")} aspect ${c.aspectError}% px>32 ${c.pixelsOver32}% mean ${c.meanDiff}`)));
+    console.log("12 covers:", res.p12.pass, JSON.stringify(out.map((c) => `${c.slug}-${c.layout}-${c.theme} ${c.bytes} bytes ${c.pass ? "identical" : "DIFFERENT"}`)));
   }
 
   // ---------- 10. sketch and header side by side ----------

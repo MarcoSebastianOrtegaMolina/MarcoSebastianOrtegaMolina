@@ -1,8 +1,9 @@
 // Featured projects: one small window per project, like the project cards of the CV (article.pcard):
 // a title bar with the CV's window title, the real cover, then the category, the name and the short
 // line. Wide layouts put the three side by side (each a third of the width); the phone stacks them
-// (each the full width). The cover is embedded as a WebP reduced to its on-screen size at 2x
-// (generador/herramientas/reducir-portadas.cjs), because GitHub does not let an SVG load images.
+// (each the full width). The cover is the CV's own WebP (generador/fuentes/proyectos/<slug>.webp, the
+// file kairomx.tech/cv/evidencias/<slug>/portada.webp serves), embedded byte for byte because GitHub
+// does not let an SVG load images.
 import fs from "node:fs";
 import path from "node:path";
 import { LAYOUTS, githubColumn, SWEEP, layoutFor } from "./constantes.mjs";
@@ -16,7 +17,7 @@ const CARD = {
 };
 
 // Width of the cover in units, and the largest width in device pixels it is shown at (at 2x) in any
-// viewport of its layout: the size the reduced covers are made at.
+// viewport of its layout: the cover must be at least that wide.
 export function coverUnits(layout) {
   const c = CARD[layout], sp = specOf(layout), W = LAYOUTS[layout].width;
   const ww = c.stacked ? W - sp.sx : (W - sp.sx - 2 * c.gap) / 3;
@@ -48,14 +49,17 @@ export function webpInfo(buf) {
   throw new Error(`WebP with an unknown first chunk "${chunk}"`);
 }
 
+// One cover per project: <slug>.webp, the same file for every layout.
+export function coverFrom(buf) {
+  return { ...webpInfo(buf), b64: buf.toString("base64"), bytes: buf.length };
+}
 export function loadCovers(dir) {
   const out = {};
   if (!fs.existsSync(dir)) return out;
   for (const f of fs.readdirSync(dir).filter((x) => /\.(jpg|jpeg|png|webp)$/.test(x))) {
-    const m = f.match(/^([a-z0-9-]+)-(desk|tab|mob)\.webp$/);
-    if (!m) throw new Error(`cover ${f}: expected <slug>-<layout>.webp`);
-    const buf = fs.readFileSync(path.join(dir, f));
-    (out[m[1]] ||= {})[m[2]] = { ...webpInfo(buf), b64: buf.toString("base64"), bytes: buf.length };
+    const m = f.match(/^([a-z0-9-]+)\.webp$/);
+    if (!m) throw new Error(`cover ${f}: expected <slug>.webp`);
+    out[m[1]] = coverFrom(fs.readFileSync(path.join(dir, f)));
   }
   return out;
 }
@@ -70,10 +74,10 @@ export function projectPieces(data, src, layout, T) {
   const inner = ww - 2, tw = inner - 2 * c.pad;
   // Text first: every card gets the same height, the tallest one's.
   const cards = featured.map((p, k) => {
-    const cov = (src.covers[p.slug] || {})[layout];
-    if (!cov) throw new Error(`projects: no cover for "${p.slug}" in the ${layout} layout (generador/fuentes/proyectos/${p.slug}-${layout}.webp)`);
+    const cov = src.covers[p.slug];
+    if (!cov) throw new Error(`projects: no cover for "${p.slug}" (generador/fuentes/proyectos/${p.slug}.webp)`);
     const need = coverPixels(layout);
-    if (cov.w < need - 1) throw new Error(`cover ${p.slug}-${layout}.webp is ${cov.w} px wide; it is shown at up to ${need} px (2x)`);
+    if (cov.w < need - 1) throw new Error(`cover ${p.slug}.webp is ${cov.w} px wide; in the ${layout} layout it is shown at up to ${need} px (2x)`);
     const coverH = inner * cov.h / cov.w;
     const wrapOr = (runs, size, field, spacing = 0) => { try { return wrap(runs, size, tw, spacing); } catch (e) { throw new Error(`projects[${data.projects.indexOf(p)}].${field}: ${e.message} in the ${layout} layout`); } };
     const catLines = wrapOr([{ text: p.cat.toUpperCase(), face: "mono-700", fill: T.muted }], c.cat, "cat", c.catLS);
