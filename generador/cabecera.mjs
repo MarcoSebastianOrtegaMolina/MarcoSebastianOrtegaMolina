@@ -39,7 +39,9 @@ const SPEC = {
       titleSize: 27, titleLS: -0.81, titleGap: 38, titleLineGap: 29,
       pitchSize: 12.4, pitchGap: 28, pitchLH: 18.5, pitchMax: 1000, pitchLines: 4,
     },
-    buttons: { style: "stack2", h: 75, bh: 58, L: 22, gap: 18, size: 11.2, ls: 0.45, icon: 13, iconGap: 6, lh: 14, minSide: 8 },
+    // One-line labels with the icon above, as approved; no letter spacing, so the longest label
+    // ("VIEW PROJECTS", "VER PROYECTOS") keeps 9 units on each side.
+    buttons: { style: "stack1", h: 67, bh: 50, L: 22, gap: 18, size: 11.2, ls: 0, icon: 13, iconGap: 6, lh: 13, minSide: 9 },
     status: { winBottom: 40, base: 21, size: 11.2, left: 22 },
   },
   mob: {
@@ -353,7 +355,7 @@ export function buildLayout(data, src, layout, theme) {
         yy += b.icon + b.iconGap + ((slots - lines.length) * b.lh) / 2;
         lines.forEach((l) => { items.push(textItem(x + bw / 2 + b.ls / 2, mid(yy + b.lh / 2, b.size), [{ text: l, face: "mono-700", fill: txt }], b.size, { spacing: b.ls, anchor: "middle", label: `button ${btn.label}` })); yy += b.lh; });
       }
-      pieces.push({ id: `btn-${btn.id}`, x: k * W / 3, w: W / 3, href: btn.href, alt: btn.label });
+      pieces.push({ id: `btn-${btn.id}`, x: k * W / 3, w: W / 3, href: btn.href, alt: btn.label, button: { x, w: bw } });
     });
     rows.push({ id: "buttons", h, items, pieces });
   }

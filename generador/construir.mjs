@@ -60,7 +60,7 @@ function buildLang(data, src) {
       if (lpiece.id !== piece.id) throw new Error(`layouts disagree on piece ${piece.id}`);
       const { svg, texts } = pieceSvg(src, THEMES[theme], lrow, lpiece, motion);
       add(pic, { base: `${lang}-${piece.id}-${layout}-${theme}${animated && motion === "still" ? "-still" : ""}`, content: svg, section: "header", row: row.id, piece: piece.id, layout, theme, motion, animated,
-        viewX: lpiece.x, viewW: lpiece.w, viewH: lpiece.h ?? lrow.h, pct: lpiece.pct ?? (lpiece.w / lo.W) * 100, texts });
+        viewX: lpiece.x, viewW: lpiece.w, viewH: lpiece.h ?? lrow.h, pct: lpiece.pct ?? (lpiece.w / lo.W) * 100, texts, button: lpiece.button });
     }
     return pic;
   }));

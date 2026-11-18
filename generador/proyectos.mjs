@@ -1,7 +1,7 @@
 // Featured projects: one small window per project, like the project cards of the CV (article.pcard):
 // a title bar with the CV's window title, the real cover, then the category, the name and the short
 // line. Wide layouts put the three side by side (each a third of the width); the phone stacks them
-// (each the full width). The cover is embedded as a JPEG reduced to its on-screen size at 2x
+// (each the full width). The cover is embedded as a WebP reduced to its on-screen size at 2x
 // (generador/herramientas/reducir-portadas.cjs), because GitHub does not let an SVG load images.
 import fs from "node:fs";
 import path from "node:path";
@@ -29,27 +29,33 @@ export function coverPixels(layout) {
   return Math.ceil(2 * u.cover * (u.pct / 100) * col / u.pieceW);
 }
 
-// Size of a JPEG from its first frame header.
-export function jpegSize(buf) {
-  if (buf[0] !== 0xff || buf[1] !== 0xd8) throw new Error("not a JPEG");
-  let i = 2;
-  while (i < buf.length) {
-    if (buf[i] !== 0xff) { i++; continue; }
-    const m = buf[i + 1], len = buf.readUInt16BE(i + 2);
-    if (m >= 0xc0 && m <= 0xcf && ![0xc4, 0xc8, 0xcc].includes(m)) return { h: buf.readUInt16BE(i + 5), w: buf.readUInt16BE(i + 7) };
-    i += 2 + len;
+// Size and kind of a WebP from its first chunk: VP8 (lossy), VP8L (lossless) or VP8X (extended).
+export function webpInfo(buf) {
+  if (buf.length < 30 || buf.toString("ascii", 0, 4) !== "RIFF" || buf.toString("ascii", 8, 12) !== "WEBP") throw new Error("not a WebP");
+  const chunk = buf.toString("ascii", 12, 16);
+  if (chunk === "VP8 ") return { kind: "lossy", w: buf.readUInt16LE(26) & 0x3fff, h: buf.readUInt16LE(28) & 0x3fff };
+  if (chunk === "VP8L") { const b = buf.readUInt32LE(21); return { kind: "lossless", w: (b & 0x3fff) + 1, h: ((b >> 14) & 0x3fff) + 1 }; }
+  if (chunk === "VP8X") {
+    // Extended: the size is in the header; the kind is the image chunk after the others (ICCP, ...).
+    let kind = "extended";
+    for (let i = 12; i + 8 <= buf.length; i += 8 + buf.readUInt32LE(i + 4) + (buf.readUInt32LE(i + 4) & 1)) {
+      const c = buf.toString("ascii", i, i + 4);
+      if (c === "VP8L") { kind = "lossless"; break; }
+      if (c === "VP8 ") { kind = "lossy"; break; }
+    }
+    return { kind, w: buf.readUIntLE(24, 3) + 1, h: buf.readUIntLE(27, 3) + 1 };
   }
-  throw new Error("JPEG without a frame header");
+  throw new Error(`WebP with an unknown first chunk "${chunk}"`);
 }
 
 export function loadCovers(dir) {
   const out = {};
   if (!fs.existsSync(dir)) return out;
-  for (const f of fs.readdirSync(dir).filter((x) => x.endsWith(".jpg"))) {
-    const m = f.match(/^([a-z0-9-]+)-(desk|tab|mob)\.jpg$/);
-    if (!m) throw new Error(`cover ${f}: expected <slug>-<layout>.jpg`);
+  for (const f of fs.readdirSync(dir).filter((x) => /\.(jpg|jpeg|png|webp)$/.test(x))) {
+    const m = f.match(/^([a-z0-9-]+)-(desk|tab|mob)\.webp$/);
+    if (!m) throw new Error(`cover ${f}: expected <slug>-<layout>.webp`);
     const buf = fs.readFileSync(path.join(dir, f));
-    (out[m[1]] ||= {})[m[2]] = { ...jpegSize(buf), b64: buf.toString("base64"), bytes: buf.length };
+    (out[m[1]] ||= {})[m[2]] = { ...webpInfo(buf), b64: buf.toString("base64"), bytes: buf.length };
   }
   return out;
 }
@@ -65,9 +71,9 @@ export function projectPieces(data, src, layout, T) {
   // Text first: every card gets the same height, the tallest one's.
   const cards = featured.map((p, k) => {
     const cov = (src.covers[p.slug] || {})[layout];
-    if (!cov) throw new Error(`projects: no cover for "${p.slug}" in the ${layout} layout (generador/fuentes/proyectos/${p.slug}-${layout}.jpg)`);
+    if (!cov) throw new Error(`projects: no cover for "${p.slug}" in the ${layout} layout (generador/fuentes/proyectos/${p.slug}-${layout}.webp)`);
     const need = coverPixels(layout);
-    if (cov.w < need - 1) throw new Error(`cover ${p.slug}-${layout}.jpg is ${cov.w} px wide; it is shown at up to ${need} px (2x)`);
+    if (cov.w < need - 1) throw new Error(`cover ${p.slug}-${layout}.webp is ${cov.w} px wide; it is shown at up to ${need} px (2x)`);
     const coverH = inner * cov.h / cov.w;
     const wrapOr = (runs, size, field, spacing = 0) => { try { return wrap(runs, size, tw, spacing); } catch (e) { throw new Error(`projects[${data.projects.indexOf(p)}].${field}: ${e.message} in the ${layout} layout`); } };
     const catLines = wrapOr([{ text: p.cat.toUpperCase(), face: "mono-700", fill: T.muted }], c.cat, "cat", c.catLS);
@@ -102,7 +108,7 @@ export function projectPieces(data, src, layout, T) {
       g += rect(cx, cy, c.ctl, c.ctl, T.bg4) + bevel(cx, cy, c.ctl, c.ctl, T.bevelHi, T.bevelLo);
     }
     // Cover, full inner width, its own proportions.
-    g += `<image x="${n(x + 1)}" y="${n(1 + c.bar)}" width="${n(ww - 2)}" height="${n(coverH)}" preserveAspectRatio="xMidYMid slice" href="data:image/jpeg;base64,${cov.b64}"/>`;
+    g += `<image x="${n(x + 1)}" y="${n(1 + c.bar)}" width="${n(ww - 2)}" height="${n(coverH)}" preserveAspectRatio="xMidYMid slice" href="data:image/webp;base64,${cov.b64}"/>`;
     g += rect(x + 1, 1 + c.bar + coverH, ww - 2, 1, line);
     // Category with its LED, name, short line.
     let y = top + c.catGap;

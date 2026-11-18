@@ -139,6 +139,15 @@ export function validate(raw) {
       cat: text(p.cat, `projects[${i}].cat`, 24), sub: text(p.sub, `projects[${i}].sub`, 80), href: link(p.href, `projects[${i}].href`), featured: p.featured,
     };
   });
+  // Every page link carries ?lang= of this file, and the CV download is the PDF of this language.
+  const links = [["profile.cv", out.cv], ...out.tabs.map((t, i) => [`tabs[${i}].href`, t.href]), ...out.buttons.map((b, i) => [`buttons[${i}].href`, b.href]),
+    ["status.href", out.status.href], ["stack.href", out.stack.href], ...out.projects.map((p, i) => [`projects[${i}].href`, p.href])];
+  for (const [where, url] of links) {
+    const pdf = url.match(/\/cv-([a-z]{2})\.pdf$/);
+    if (pdf) { if (pdf[1] !== out.lang) throw new DataError(`${where}: the PDF is cv-${pdf[1]}.pdf in a "${out.lang}" file`); continue; }
+    const lang = (url.match(/[?&]lang=([^&#]*)/) || [])[1];
+    if (lang !== out.lang) throw new DataError(`${where}: the link says ${lang ? `lang=${lang}` : "no lang"}; this file is "${out.lang}"`);
+  }
   const featured = out.projects.filter((p) => p.featured).length;
   if (featured !== FEATURED_COUNT) throw new DataError(`projects: ${featured} marked as featured; the README shows exactly ${FEATURED_COUNT}`);
   return out;
