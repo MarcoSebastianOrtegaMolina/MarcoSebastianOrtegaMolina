@@ -55,7 +55,7 @@
       { "id": "vercel", "name": "Vercel" },
       { "id": "git", "name": "Git" },
       { "id": "docker", "name": "Docker" },
-      { "id": "n8n", "name": "n8n" },
+      { "id": "n8n", "name": "Flujos con n8n" },
       { "id": "claude", "name": "Claude" }
     ]
   },

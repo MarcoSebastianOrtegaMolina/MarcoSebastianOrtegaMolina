@@ -37,8 +37,10 @@ export function readData(file) {
   return validate(raw);
 }
 
+export const FUENTES = path.join(here, "fuentes");
+export const DATOS = path.join(root, "datos");
 export function loadAll() {
-  const fuentes = path.join(here, "fuentes");
+  const fuentes = FUENTES;
   return { ...loadSources(fuentes), logos: loadLogos(path.join(fuentes, "stack")), covers: loadCovers(path.join(fuentes, "proyectos")) };
 }
 
@@ -54,28 +56,75 @@ export function buildFromDisk(override = null) {
   return build(datas, loadAll());
 }
 
-function main() {
-  const check = process.argv.includes("--check"), only = process.argv.includes("--validate");
-  const out = buildFromDisk(arg("--datos"));
-  if (only) { console.log(`valid: ${out.files.length} images, ${Object.keys(out.readmes).join(" and ")}`); return; }
+// What writing a build would change on disk: images to write, images no longer used, READMEs that differ.
+export function plan(out) {
   const wanted = new Map(out.files.map((f) => [f.name, f.content]));
   const onDisk = fs.existsSync(ASSETS) ? fs.readdirSync(ASSETS).filter((f) => f.endsWith(".svg")) : [];
   const stale = onDisk.filter((f) => !wanted.has(f));
   const changed = [...wanted].filter(([name, content]) => !fs.existsSync(path.join(ASSETS, name)) || fs.readFileSync(path.join(ASSETS, name), "utf8") !== content).map(([name]) => name);
   const readmes = Object.entries(out.readmes).filter(([file, text]) => !fs.existsSync(path.join(root, file)) || fs.readFileSync(path.join(root, file), "utf8") !== text).map(([file]) => file);
-  if (check) {
-    const diff = changed.length + stale.length + readmes.length;
-    console.log(diff ? `out of date: ${changed.length} images to write, ${stale.length} to delete${readmes.length ? `, ${readmes.join(" and ")} differ` : ""}` : "up to date");
-    process.exit(diff ? 1 : 0);
+  return { wanted, changed, stale, readmes };
+}
+
+// Writes (content) or deletes (null) every file of `ops` as one unit: what each file had before is
+// kept in memory, and if a write or a delete fails, every file already touched is put back as it was.
+export function applyAll(ops) {
+  const done = [];
+  try {
+    for (const op of ops) {
+      done.push({ file: op.file, before: fs.existsSync(op.file) ? fs.readFileSync(op.file) : null });
+      fs.mkdirSync(path.dirname(op.file), { recursive: true });
+      if (op.content === null) fs.unlinkSync(op.file);
+      else fs.writeFileSync(op.file, op.content);
+    }
+  } catch (e) {
+    const failed = path.relative(root, done[done.length - 1].file);
+    const lost = [];
+    for (const d of done.reverse()) {
+      try {
+        const now = fs.existsSync(d.file) ? fs.readFileSync(d.file) : null;
+        if (d.before === null ? now === null : now !== null && now.equals(d.before)) continue;
+        if (d.before === null) fs.rmSync(d.file, { force: true });
+        else fs.writeFileSync(d.file, d.before);
+      } catch { lost.push(path.relative(root, d.file)); }
+    }
+    throw new Error(`could not write ${failed}: ${e.message}; ${lost.length ? `COULD NOT PUT BACK ${lost.join(", ")}` : "every file was put back as it was"}`);
   }
-  fs.mkdirSync(ASSETS, { recursive: true });
-  for (const name of changed) fs.writeFileSync(path.join(ASSETS, name), wanted.get(name));
-  for (const name of stale) fs.unlinkSync(path.join(ASSETS, name));
-  for (const file of readmes) fs.writeFileSync(path.join(root, file), out.readmes[file]);
+}
+
+// The writes of a build that has passed every check (see plan): images, unused images, READMEs.
+export function writeOps(out, p) {
+  return [
+    ...p.changed.map((name) => ({ file: path.join(ASSETS, name), content: p.wanted.get(name) })),
+    ...p.stale.map((name) => ({ file: path.join(ASSETS, name), content: null })),
+    ...p.readmes.map((file) => ({ file: path.join(root, file), content: out.readmes[file] })),
+  ];
+}
+
+export function report(out, p) {
   const biggest = out.files.reduce((a, f) => (f.bytes > a.bytes ? f : a));
   const heaviest = out.visits.reduce((a, v) => (v.bytes > a.bytes ? v : a));
-  console.log(`${out.files.length} images (${changed.length} written, ${stale.length} deleted)${readmes.length ? `, ${readmes.join(" and ")} written` : ""}`);
+  console.log(`${out.files.length} images (${p.changed.length} written, ${p.stale.length} deleted)${p.readmes.length ? `, ${p.readmes.join(" and ")} written` : ""}`);
   console.log(`largest image ${biggest.base} ${(biggest.bytes / 1024).toFixed(1)} KB; heaviest visit ${heaviest.lang}/${heaviest.layout}/${heaviest.theme}${heaviest.reduce ? "/reduced" : ""} ${(heaviest.bytes / 1024).toFixed(1)} KB`);
+}
+
+// Writes a build that has passed every check (see plan), all or nothing.
+export function write(out, p = plan(out)) {
+  applyAll(writeOps(out, p));
+  report(out, p);
+}
+
+function main() {
+  const check = process.argv.includes("--check"), only = process.argv.includes("--validate");
+  const out = buildFromDisk(arg("--datos"));
+  if (only) { console.log(`valid: ${out.files.length} images, ${Object.keys(out.readmes).join(" and ")}`); return; }
+  const p = plan(out);
+  if (check) {
+    const diff = p.changed.length + p.stale.length + p.readmes.length;
+    console.log(diff ? `out of date: ${p.changed.length} images to write, ${p.stale.length} to delete${p.readmes.length ? `, ${p.readmes.join(" and ")} differ` : ""}` : "up to date");
+    process.exit(diff ? 1 : 0);
+  }
+  write(out, p);
 }
 
 export { README_FILE };
