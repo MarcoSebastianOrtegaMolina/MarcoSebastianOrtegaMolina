@@ -44,7 +44,11 @@ export const COVER_PREFIX = "https://www.kairomx.tech/cv/evidencias/";
 const HOST = "www.kairomx.tech";
 const COVER_URL = /^https:\/\/www\.kairomx\.tech\/cv\/evidencias\/[a-z0-9][a-z0-9-]{0,39}\/[a-z0-9][a-z0-9-]{0,39}\.webp$/;
 const COVERS_DIR = path.join(FUENTES, "proyectos");
-const SHORTEN = ". Shorten that text in the CV (kairomx-web, public/cv/js/i18n/<lang>.js or public/cv/index.html)";
+// Hint added to an error about a text that does not fit, naming the CV file of that language.
+const shorten = (lang) => {
+  const file = lang === "en" || lang === "es" ? `public/cv/js/i18n/${lang}.js` : "public/cv/js/i18n/en.js or es.js";
+  return `. Shorten that text in the CV (kairomx-web, ${file} or public/cv/index.html)`;
+};
 
 function arg(name) {
   const i = process.argv.indexOf(name);
@@ -100,7 +104,7 @@ export function parseProfile(buf) {
   const datas = {};
   for (const lang of LANGS) {
     let d;
-    try { d = validate(raw[lang]); } catch (e) { throw new Error(`${lang}: ${e.message}${/the cap is/.test(e.message) ? SHORTEN : ""}`); }
+    try { d = validate(raw[lang]); } catch (e) { throw new Error(`${lang}: ${e.message}${/the cap is/.test(e.message) ? shorten(lang) : ""}`); }
     if (d.lang !== lang) throw new Error(`${lang}: the block says lang "${d.lang}"; it must be "${lang}"`);
     datas[lang] = d;
   }
@@ -152,7 +156,7 @@ async function main() {
   // The whole build, in memory, with the new data and covers: every fit and size check runs here.
   const src = { ...loadAll(), covers: Object.fromEntries(Object.entries(coverFiles).map(([slug, buf]) => [slug, coverFrom(buf)])) };
   let out;
-  try { out = build(datas, src); } catch (e) { throw new Error(`${e.message}${/ fit|tall for/.test(e.message) ? SHORTEN : ""}`); }
+  try { out = build(datas, src); } catch (e) { throw new Error(`${e.message}${/ fit|tall for/.test(e.message) ? shorten((/^(en|es)\b/.exec(e.message) || [])[1]) : ""}`); }
   // What would change.
   const data = LANGS.map((lang) => ({ lang, file: path.join(DATOS, `perfil.${lang}.json`), text: dataText(datas[lang]) }))
     .filter((d) => !fs.existsSync(d.file) || fs.readFileSync(d.file, "utf8") !== d.text);
