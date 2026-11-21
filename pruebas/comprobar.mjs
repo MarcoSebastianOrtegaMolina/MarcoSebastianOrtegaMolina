@@ -14,7 +14,8 @@
 // Daily update: U1 (each embedded cover is the CV's WebP byte for byte), U2 (the data files are in the
 // format generador/actualizar.mjs writes), U3 (actualizar.mjs with today's data changes nothing; with
 // broken data or the network down it fails, says why and changes nothing; offline, through
-// pruebas/red-falsa.mjs) and U4 (the workflow: pinned actions, least permissions, concurrency).
+// pruebas/red-falsa.mjs; also a write that fails halfway, in a copy), U4 (the workflow: pinned actions,
+// least permissions, concurrency) and U5 (the workflow's caveats are written down).
 import fs from "node:fs";
 import path from "node:path";
 import crypto from "node:crypto";
@@ -376,7 +377,8 @@ const act = await import(pathToFileURL(path.join(root, "generador/actualizar.mjs
   const viaNet = (mutate) => ({ file: json(mutate), type: "application/json" });
   const cases = {
     "link outside kairomx.tech": [() => net(viaNet((d) => { d.en.tabs[1].href = "https://example.com/cv/"; })), "links must start"],
-    "text that does not fit its place": [() => net(viaNet((d) => { d.es.window.title = "W".repeat(24); d.es.window.titleAccent = "W".repeat(8); })), "window.title"],
+    "text that does not fit its place": [() => net(viaNet((d) => { d.es.window.title = "W".repeat(24); d.es.window.titleAccent = "W".repeat(8); })), ["es: window.title", "measures", "fit", "Shorten that text in the CV"]],
+    "text over its cap in the contract": [() => net(viaNet((d) => { const p = d.en.hero.pitch; p[p.length - 1].text = p[p.length - 1].text.replace(/\.$/, ", from the first sketch to production."); })), ["en: hero.pitch", "characters in total, the cap is 110", "Shorten that text in the CV"]],
     "emoji": [() => net(viaNet((d) => { d.en.status.parts[1].text = "remote \u{1F680}"; })), "emoji"],
     "language blocks swapped": [() => net(viaNet((d) => { [d.en, d.es] = [d.es, d.en]; })), 'the block says lang "es"'],
     "cover outside its folder": [() => net(viaNet((d) => { d.covers[slugs[1]] = "https://www.kairomx.tech/cv/evidencias/../img/og.webp"; })), `covers.${slugs[1]}`],
@@ -398,9 +400,47 @@ const act = await import(pathToFileURL(path.join(root, "generador/actualizar.mjs
     const before = treeHash();
     const r = runAct(args, answers);
     const msg = r.stderr.trim();
-    check(`U3. actualizar.mjs, ${label}: fails, says why and changes nothing`, r.status === 1 && treeHash() === before && msg.includes(word), `exit ${r.status}; ${msg || r.stdout.trim()}`);
+    check(`U3. actualizar.mjs, ${label}: fails, says why and changes nothing`, r.status === 1 && treeHash() === before && [].concat(word).every((w) => msg.includes(w)), `exit ${r.status}; ${msg || r.stdout.trim()}`);
   }
   fs.rmSync(tmp, { recursive: true, force: true });
+}
+
+// ---------- U3: a write that fails halfway leaves every file as it was ----------
+// In a copy of the tree (never this one): a valid change of the CV, with README.md read-only, so the
+// last write fails after the data and the images were written.
+{
+  const copy = fs.mkdtempSync(path.join(os.tmpdir(), "actualizar-copia-"));
+  let detail = "";
+  let ok = false;
+  try {
+    for (const f of walkAll("")) { fs.mkdirSync(path.dirname(path.join(copy, f)), { recursive: true }); fs.copyFileSync(path.join(root, f), path.join(copy, f)); }
+    const hashOf = (dir) => { const h = crypto.createHash("sha256"); for (const f of walkAll("").sort()) h.update(f + "\0").update(fs.existsSync(path.join(dir, f)) ? fs.readFileSync(path.join(dir, f)) : Buffer.from("missing")); return h.digest("hex"); };
+    const slugs = good.en.projects.filter((p) => p.featured).map((p) => p.slug);
+    const coverUrl = (slug) => `https://www.kairomx.tech/cv/evidencias/${slug}/portada.webp`;
+    const changed = structuredClone({ schema: 1, en: good.en, es: good.es, covers: Object.fromEntries(slugs.map((s) => [s, coverUrl(s)])) });
+    changed.en.projects[1].sub += " for city networks";
+    const from = path.join(copy, "cambio.json");
+    fs.writeFileSync(from, JSON.stringify(changed));
+    const answers = Object.fromEntries(slugs.map((s) => [coverUrl(s), { file: path.join(copy, `generador/fuentes/proyectos/${s}.webp`), type: "image/webp" }]));
+    const before = hashOf(copy);
+    fs.chmodSync(path.join(copy, "README.md"), 0o444);
+    const r = spawnSync(process.execPath, ["--import", pathToFileURL(path.join(copy, "pruebas/red-falsa.mjs")).href, path.join(copy, "generador/actualizar.mjs"), "--from", from], { encoding: "utf8", env: { ...process.env, RED_FALSA: JSON.stringify(answers) } });
+    fs.chmodSync(path.join(copy, "README.md"), 0o644);
+    const after = hashOf(copy);
+    const extra = fs.readdirSync(path.join(copy, "assets")).length - fs.readdirSync(ASSETS).length;
+    ok = r.status === 1 && before === after && extra === 0 && /README\.md/.test(r.stderr) && /put back as it was/.test(r.stderr);
+    detail = `exit ${r.status}; tree ${before === after ? "unchanged" : "CHANGED"}; ${r.stderr.trim()}`;
+  } catch (e) { detail = e.message; }
+  fs.rmSync(copy, { recursive: true, force: true });
+  check("U3. actualizar.mjs, a write that fails halfway (README.md read-only, in a copy): fails, says which file, and puts back every file it had written", ok, detail);
+}
+
+// ---------- U5: what to know about the daily workflow is written where it is read ----------
+{
+  const docs = { "generador/actualizar.mjs": fs.readFileSync(path.join(root, "generador/actualizar.mjs"), "utf8"), ".github/workflows/actualizar-readme.yml": fs.existsSync(path.join(root, ".github/workflows/actualizar-readme.yml")) ? fs.readFileSync(path.join(root, ".github/workflows/actualizar-readme.yml"), "utf8") : "" };
+  const need = [["60 days", "turned off after 60 days without activity"], ["Enable workflow", "how to turn it back on"], ["Actions tab", "where it shows"], ["Disable workflow", "undo: turn it off first"], ["git revert", "a revert alone does not last"], ["does not fit", "a text that does not fit fails every run"]];
+  const missing = Object.entries(docs).flatMap(([f, t]) => need.filter(([w]) => !t.includes(w)).map(([, why]) => `${f}: ${why}`));
+  check("U5. the workflow and actualizar.mjs say that GitHub turns the schedule off after 60 days without activity and how to turn it on, how to undo a change for good, and that a text that does not fit fails every run", !missing.length, missing.join("; ") || "both files");
 }
 
 // ---------- U4: the daily workflow ----------

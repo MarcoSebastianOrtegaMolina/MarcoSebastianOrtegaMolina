@@ -3,6 +3,15 @@
 # meet the contract, the run fails, nothing is committed and the README stays as it was.
 # No secrets: only this repository's GITHUB_TOKEN, allowed to write contents and nothing else. No value
 # from the downloaded file is ever placed in a shell command.
+#
+# Undoing a README change: `git revert` alone does not last, the next run rebuilds the README from the
+# CV. Change the CV, or first turn this workflow off (Actions tab, this workflow, "Disable workflow")
+# and then revert.
+# GitHub turns scheduled workflows off by itself in a public repository after 60 days without any
+# activity. It shows in the Actions tab (the workflow is marked as disabled and no new runs appear);
+# turn it back on there with "Enable workflow". Nothing commits just to keep it alive.
+# A CV text that does not fit makes every run fail until it is shortened in the CV; the error says
+# which text, in which language, how long it is and how much fits.
 name: Update README from the CV
 
 on:

@@ -122,7 +122,10 @@ function buildLang(data, src) {
 // Both languages. Files with the same name (same content) are written once.
 export function build(datas, src) {
   const langs = {};
-  for (const [lang, data] of Object.entries(datas)) langs[lang] = buildLang(data, src);
+  for (const [lang, data] of Object.entries(datas)) {
+    // Every error says which language it is about (some already start with [lang]).
+    try { langs[lang] = buildLang(data, src); } catch (e) { if (!e.message.startsWith(`[${lang}]`)) e.message = `${lang}: ${e.message}`; throw e; }
+  }
   const byName = new Map();
   for (const r of Object.values(langs)) for (const f of r.files) byName.set(f.name, f);
   const readmes = Object.fromEntries(Object.values(langs).map((r) => [README_FILE[r.lang], r.readme]));

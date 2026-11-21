@@ -15,13 +15,27 @@
 // What comes from the site is data: it is parsed as JSON and never run, every text and link goes
 // through the contract, and the covers must be WebP files under https://www.kairomx.tech/cv/evidencias/.
 // Downloads have a time limit and a size cap, follow no redirects and only go to www.kairomx.tech.
-// If anything fails it exits with an error and leaves every file as it was.
+// If anything fails it exits with an error and leaves every file as it was: everything is checked in
+// memory first, and the writes go as one unit (if one fails, the files already written are put back).
+//
+// A CV text that does not fit (over its cap in the contract, or wider than its place in a layout) makes
+// every daily run fail, on purpose, until the text is shortened in the CV: the error names the language,
+// the field, how long it is and how much fits.
+//
+// The daily workflow (.github/workflows/actualizar-readme.yml):
+// - Undoing a README change: `git revert` alone no longer works, because the next daily run rebuilds the
+//   README from the CV. To undo for good, change the CV; or first turn the workflow off (Actions tab,
+//   "Update README from the CV", "Disable workflow"), then revert.
+// - GitHub turns scheduled workflows off by itself in a public repository after 60 days without any
+//   activity in it. It shows in the Actions tab (the workflow is marked as disabled and no new runs
+//   appear); to turn it back on, open it there and click "Enable workflow". Nothing commits just to
+//   keep it alive.
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { validate, LANGS } from "./datos.mjs";
 import { build } from "./construir.mjs";
-import { loadAll, plan, write, DATOS, FUENTES } from "./generar.mjs";
+import { loadAll, plan, writeOps, applyAll, report, DATOS, FUENTES } from "./generar.mjs";
 import { coverFrom } from "./proyectos.mjs";
 import { MAX_DATA, MAX_COVER, FETCH_TIMEOUT_MS } from "./constantes.mjs";
 
@@ -30,6 +44,7 @@ export const COVER_PREFIX = "https://www.kairomx.tech/cv/evidencias/";
 const HOST = "www.kairomx.tech";
 const COVER_URL = /^https:\/\/www\.kairomx\.tech\/cv\/evidencias\/[a-z0-9][a-z0-9-]{0,39}\/[a-z0-9][a-z0-9-]{0,39}\.webp$/;
 const COVERS_DIR = path.join(FUENTES, "proyectos");
+const SHORTEN = ". Shorten that text in the CV (kairomx-web, public/cv/js/i18n/<lang>.js or public/cv/index.html)";
 
 function arg(name) {
   const i = process.argv.indexOf(name);
@@ -85,7 +100,7 @@ export function parseProfile(buf) {
   const datas = {};
   for (const lang of LANGS) {
     let d;
-    try { d = validate(raw[lang]); } catch (e) { throw new Error(`${lang}: ${e.message}`); }
+    try { d = validate(raw[lang]); } catch (e) { throw new Error(`${lang}: ${e.message}${/the cap is/.test(e.message) ? SHORTEN : ""}`); }
     if (d.lang !== lang) throw new Error(`${lang}: the block says lang "${d.lang}"; it must be "${lang}"`);
     datas[lang] = d;
   }
@@ -136,7 +151,8 @@ async function main() {
   }
   // The whole build, in memory, with the new data and covers: every fit and size check runs here.
   const src = { ...loadAll(), covers: Object.fromEntries(Object.entries(coverFiles).map(([slug, buf]) => [slug, coverFrom(buf)])) };
-  const out = build(datas, src);
+  let out;
+  try { out = build(datas, src); } catch (e) { throw new Error(`${e.message}${/ fit|tall for/.test(e.message) ? SHORTEN : ""}`); }
   // What would change.
   const data = LANGS.map((lang) => ({ lang, file: path.join(DATOS, `perfil.${lang}.json`), text: dataText(datas[lang]) }))
     .filter((d) => !fs.existsSync(d.file) || fs.readFileSync(d.file, "utf8") !== d.text);
@@ -161,11 +177,13 @@ async function main() {
     console.log(count ? `out of date: ${summary.join("; ")}` : "up to date");
     process.exit(count ? 1 : 0);
   }
-  for (const d of data) fs.writeFileSync(d.file, d.text);
-  fs.mkdirSync(COVERS_DIR, { recursive: true });
-  for (const slug of newCovers) fs.writeFileSync(path.join(COVERS_DIR, `${slug}.webp`), coverFiles[slug]);
-  for (const f of oldCovers) fs.unlinkSync(path.join(COVERS_DIR, f));
-  write(out, p);
+  applyAll([
+    ...data.map((d) => ({ file: d.file, content: d.text })),
+    ...newCovers.map((slug) => ({ file: path.join(COVERS_DIR, `${slug}.webp`), content: coverFiles[slug] })),
+    ...oldCovers.map((f) => ({ file: path.join(COVERS_DIR, f), content: null })),
+    ...writeOps(out, p),
+  ]);
+  report(out, p);
   console.log(count ? `updated: ${summary.join("; ")}` : "up to date: nothing changed");
   if (messageFile && count) fs.writeFileSync(messageFile, `chore(readme): update from the CV\n\n${summary.map((s) => `- ${s}`).join("\n")}\n\nSource: ${from ? "a local file" : DATA_URL}\n`);
 }

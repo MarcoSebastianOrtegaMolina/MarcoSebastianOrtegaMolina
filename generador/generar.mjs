@@ -66,16 +66,52 @@ export function plan(out) {
   return { wanted, changed, stale, readmes };
 }
 
-// Writes a build that has passed every check (see plan).
-export function write(out, p = plan(out)) {
-  fs.mkdirSync(ASSETS, { recursive: true });
-  for (const name of p.changed) fs.writeFileSync(path.join(ASSETS, name), p.wanted.get(name));
-  for (const name of p.stale) fs.unlinkSync(path.join(ASSETS, name));
-  for (const file of p.readmes) fs.writeFileSync(path.join(root, file), out.readmes[file]);
+// Writes (content) or deletes (null) every file of `ops` as one unit: what each file had before is
+// kept in memory, and if a write or a delete fails, every file already touched is put back as it was.
+export function applyAll(ops) {
+  const done = [];
+  try {
+    for (const op of ops) {
+      done.push({ file: op.file, before: fs.existsSync(op.file) ? fs.readFileSync(op.file) : null });
+      fs.mkdirSync(path.dirname(op.file), { recursive: true });
+      if (op.content === null) fs.unlinkSync(op.file);
+      else fs.writeFileSync(op.file, op.content);
+    }
+  } catch (e) {
+    const failed = path.relative(root, done[done.length - 1].file);
+    const lost = [];
+    for (const d of done.reverse()) {
+      try {
+        const now = fs.existsSync(d.file) ? fs.readFileSync(d.file) : null;
+        if (d.before === null ? now === null : now !== null && now.equals(d.before)) continue;
+        if (d.before === null) fs.rmSync(d.file, { force: true });
+        else fs.writeFileSync(d.file, d.before);
+      } catch { lost.push(path.relative(root, d.file)); }
+    }
+    throw new Error(`could not write ${failed}: ${e.message}; ${lost.length ? `COULD NOT PUT BACK ${lost.join(", ")}` : "every file was put back as it was"}`);
+  }
+}
+
+// The writes of a build that has passed every check (see plan): images, unused images, READMEs.
+export function writeOps(out, p) {
+  return [
+    ...p.changed.map((name) => ({ file: path.join(ASSETS, name), content: p.wanted.get(name) })),
+    ...p.stale.map((name) => ({ file: path.join(ASSETS, name), content: null })),
+    ...p.readmes.map((file) => ({ file: path.join(root, file), content: out.readmes[file] })),
+  ];
+}
+
+export function report(out, p) {
   const biggest = out.files.reduce((a, f) => (f.bytes > a.bytes ? f : a));
   const heaviest = out.visits.reduce((a, v) => (v.bytes > a.bytes ? v : a));
   console.log(`${out.files.length} images (${p.changed.length} written, ${p.stale.length} deleted)${p.readmes.length ? `, ${p.readmes.join(" and ")} written` : ""}`);
   console.log(`largest image ${biggest.base} ${(biggest.bytes / 1024).toFixed(1)} KB; heaviest visit ${heaviest.lang}/${heaviest.layout}/${heaviest.theme}${heaviest.reduce ? "/reduced" : ""} ${(heaviest.bytes / 1024).toFixed(1)} KB`);
+}
+
+// Writes a build that has passed every check (see plan), all or nothing.
+export function write(out, p = plan(out)) {
+  applyAll(writeOps(out, p));
+  report(out, p);
 }
 
 function main() {
